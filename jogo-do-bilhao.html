@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jogo do Bilhão</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: radial-gradient(circle at top, #f5c542, #f07b3f 45%, #2c3e50 100%);
+            min-height: 100vh;
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1080px;
+            display: grid;
+            grid-template-columns: 1fr 360px;
+            gap: 24px;
+        }
+
+        .card {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.25);
+            border-radius: 24px;
+            padding: 28px;
+            box-shadow: 0 30px 80px rgba(0,0,0,0.35);
+            backdrop-filter: blur(16px);
+        }
+
+        .hero {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .hero h1 {
+            font-size: 3rem;
+            margin-bottom: 12px;
+            text-shadow: 0 10px 30px rgba(0,0,0,0.25);
+        }
+
+        .hero p {
+            color: rgba(255,255,255,0.88);
+            line-height: 1.8;
+            margin-bottom: 0;
+        }
+
+        .question-card {
+            margin-top: 20px;
+        }
+
+        .question-title {
+            font-size: 1.3rem;
+            margin-bottom: 16px;
+            letter-spacing: 0.4px;
+        }
+
+        .options {
+            display: grid;
+            gap: 12px;
+        }
+
+        .option-button {
+            padding: 16px 18px;
+            border-radius: 14px;
+            border: 1px solid rgba(255,255,255,0.2);
+            background: rgba(255,255,255,0.12);
+            color: #fff;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: transform 0.2s ease, background 0.2s ease;
+            text-align: left;
+        }
+
+        .option-button:hover:not(.disabled) {
+            transform: translateY(-2px);
+            background: rgba(255,255,255,0.2);
+        }
+
+        .option-button.correct {
+            background: #2ecc71;
+            border-color: #27ae60;
+        }
+
+        .option-button.wrong {
+            background: #e74c3c;
+            border-color: #c0392b;
+        }
+
+        .option-button.disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        .controls {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 18px;
+        }
+
+        .btn {
+            flex: 1;
+            min-width: 125px;
+            border: none;
+            border-radius: 12px;
+            padding: 14px 18px;
+            background: #34495e;
+            color: #fff;
+            font-size: 0.98rem;
+            cursor: pointer;
+            transition: background 0.2s ease, transform 0.2s ease;
+        }
+
+        .btn:hover {
+            background: #2c3e50;
+            transform: translateY(-1px);
+        }
+
+        .btn:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .sidebar {
+            display: grid;
+            gap: 20px;
+        }
+
+        .panel {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.18);
+            border-radius: 20px;
+            padding: 22px;
+        }
+
+        .panel h2 {
+            font-size: 1.25rem;
+            margin-bottom: 14px;
+        }
+
+        .panel ul {
+            list-style: none;
+            display: grid;
+            gap: 12px;
+        }
+
+        .panel li {
+            display: flex;
+            justify-content: space-between;
+            background: rgba(255,255,255,0.08);
+            border-radius: 12px;
+            padding: 12px 14px;
+            font-size: 0.95rem;
+        }
+
+        .panel li.active {
+            background: rgba(46, 204, 113, 0.18);
+            border-color: #2ecc71;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 999px;
+            background: rgba(255,255,255,0.15);
+            color: #fff;
+            font-size: 0.85rem;
+        }
+
+        .footer {
+            margin-top: 18px;
+            text-align: center;
+            font-size: 0.95rem;
+            color: rgba(255,255,255,0.75);
+        }
+
+        .rules {
+            margin-top: 20px;
+            display: grid;
+            gap: 10px;
+            font-size: 0.95rem;
+            line-height: 1.75;
+        }
+
+        .status-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 14px;
+        }
+
+        .status-block {
+            flex: 1;
+            min-width: 130px;
+            background: rgba(0,0,0,0.18);
+            border-radius: 14px;
+            padding: 14px;
+            text-align: center;
+        }
+
+        .status-block strong {
+            display: block;
+            margin-bottom: 6px;
+            color: #f5c542;
+        }
+
+        .status-block span {
+            display: block;
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+
+        .result-banner {
+            display: none;
+            margin-top: 20px;
+            border-radius: 18px;
+            padding: 18px 22px;
+            font-size: 1rem;
+            font-weight: 700;
+            text-align: center;
+            color: #fff;
+        }
+
+        .result-banner.show {
+            display: block;
+        }
+
+        .result-banner.success {
+            background: rgba(46, 204, 113, 0.18);
+            border: 1px solid #2ecc71;
+        }
+
+        .result-banner.failure {
+            background: rgba(231, 76, 60, 0.18);
+            border: 1px solid #e74c3c;
+        }
+
+        @media (max-width: 980px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <div class="hero">
+                <h1>Jogo do Bilhão</h1>
+                <p>Responda 10 perguntas sorteadas de um banco de 15, use lifelines e tente chegar ao prêmio máximo.</p>
+            </div>
+
+            <div class="status-row">
+                <div class="status-block">
+                    <strong>Pergunta</strong>
+                    <span id="current-step">1 / 10</span>
+                </div>
+                <div class="status-block">
+                    <strong>Prêmio atual</strong>
+                    <span id="prize-display">R$ 500</span>
+                </div>
+                <div class="status-block">
+                    <strong>Prêmio Garantido</strong>
+                    <span id="safe-prize">R$ 0</span>
+                </div>
+                <div class="status-block">
+                    <strong>Pontos acumulados</strong>
+                    <span data-score-total="bilhao">0</span>
+                </div>
+            </div>
+
+            <div class="question-card">
+                <div class="question-title" id="question-text">Clique em continuar para começar.</div>
+                <div class="options" id="options"></div>
+            </div>
+
+            <div class="controls">
+                <button class="btn" id="start-btn">Começar Quiz</button>
+                <button class="btn" id="fifty-btn">50/50</button>
+                <button class="btn" id="skip-btn">Pular</button>
+                <button class="btn" id="audience-btn">Plateia</button>
+                <button class="btn" id="menu-btn">Voltar ao Menu</button>
+            </div>
+
+            <div class="result-banner" id="result-banner"></div>
+            <div class="footer" id="message-text">Use as lifelines com sabedoria: só 1x cada.</div>
+        </div>
+
+        <div class="sidebar">
+            <div class="panel">
+                <h2>Prêmios</h2>
+                <ul id="prize-list">
+                    <li class="active"><span>1</span><strong>R$ 500</strong></li>
+                    <li><span>2</span><strong>R$ 1.000</strong></li>
+                    <li><span>3</span><strong>R$ 5.000</strong></li>
+                    <li><span>4</span><strong>R$ 10.000</strong></li>
+                    <li><span>5</span><strong>R$ 25.000</strong></li>
+                    <li><span>6</span><strong>R$ 50.000</strong></li>
+                    <li><span>7</span><strong>R$ 100.000</strong></li>
+                    <li><span>8</span><strong>R$ 200.000</strong></li>
+                    <li><span>9</span><strong>R$ 500.000</strong></li>
+                    <li><span>10</span><strong>R$ 1.000.000</strong></li>
+                </ul>
+            </div>
+
+            <div class="panel">
+                <h2>Lifelines</h2>
+                <ul>
+                    <li id="lifeline-fifty">50/50 <span>Disponível</span></li>
+                    <li id="lifeline-skip">Pular <span>Disponível</span></li>
+                    <li id="lifeline-audience">Plateia <span>Disponível</span></li>
+                </ul>
+            </div>
+
+            <div class="panel rules">
+                <h2>Regras rápidas</h2>
+                <p>Responda cada pergunta para subir na escada de prêmios. Uma resposta errada encerra o quiz.</p>
+                <p>Use 50/50 para eliminar duas opções erradas, Pular para avançar sem perder e Plateia para ver probabilidades.</p>
+                <p>O prêmio final é desbloqueado ao acertar todas as perguntas.</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="score-counter.js"></script>
+    <script>
+        const questions = [
+            {
+                text: 'Qual linguagem é usada para criar scripts no navegador?',
+                options: ['Python', 'C++', 'JavaScript', 'Ruby'],
+                answer: 2
+            },
+            {
+                text: 'Qual cidade é conhecida como a cidade luz?',
+                options: ['Roma', 'Nova York', 'Londres', 'Paris'],
+                answer: 3
+            },
+            {
+                text: 'Qual planeta é chamado de Planeta Vermelho?',
+                options: ['Vênus', 'Marte', 'Júpiter', 'Saturno'],
+                answer: 1
+            },
+            {
+                text: 'Quem escreveu "Dom Quixote"?',
+                options: ['Miguel de Cervantes', 'Fernando Pessoa', 'Machado de Assis', 'Jorge Amado'],
+                answer: 0
+            },
+            {
+                text: 'Qual é a fórmula química da água?',
+                options: ['H2O', 'O2', 'CO2', 'NaCl'],
+                answer: 0
+            },
+            {
+                text: 'Qual destes é um instrumento de sopro?',
+                options: ['Violino', 'Flauta', 'Piano', 'Guitarra'],
+                answer: 1
+            },
+            {
+                text: 'Em que país nasceu o samba?',
+                options: ['Brasil', 'Argentina', 'Portugal', 'Cuba'],
+                answer: 0
+            },
+            {
+                text: 'Qual animal é conhecido como rei da selva?',
+                options: ['Tigre', 'Leão', 'Elefante', 'Guepardo'],
+                answer: 1
+            },
+            {
+                text: 'Qual oceano é o maior do mundo?',
+                options: ['Índico', 'Atlântico', 'Pacífico', 'Ártico'],
+                answer: 2
+            },
+            {
+                text: 'Qual diretor dirigiu "E.T. - O Extraterrestre"?',
+                options: ['Steven Spielberg', 'James Cameron', 'Quentin Tarantino', 'Christopher Nolan'],
+                answer: 0
+            },
+            {
+                text: 'Qual é o maior país do mundo em área territorial?',
+                options: ['Canadá', 'China', 'Estados Unidos', 'Rússia'],
+                answer: 3
+            },
+            {
+                text: 'Qual elemento tem o símbolo "Au"?',
+                options: ['Prata', 'Ouro', 'Água', 'Manganês'],
+                answer: 1
+            },
+            {
+                text: 'Quem pintou a Mona Lisa?',
+                options: ['Leonardo da Vinci', 'Pablo Picasso', 'Vincent van Gogh', 'Claude Monet'],
+                answer: 0
+            },
+            {
+                text: 'Qual é o esporte mais popular do mundo?',
+                options: ['Basquete', 'Tênis', 'Futebol', 'Críquete'],
+                answer: 2
+            },
+            {
+                text: 'Qual instrumento mede a temperatura?',
+                options: ['Barômetro', 'Termômetro', 'Higrômetro', 'Anemômetro'],
+                answer: 1
+            },
+            {
+                text: 'Qual é o menor planeta do sistema solar?',
+                options: ['Mercúrio', 'Marte', 'Vênus', 'Terra'],
+                answer: 0
+            },
+            {
+                text: 'Qual gás é o maior componente da atmosfera da Terra?',
+                options: ['Nitrogênio', 'Oxigênio', 'Dióxido de Carbono', 'Hélio'],
+                answer: 0
+            },
+            {
+                text: 'O que significa HTML?',
+                options: ['HyperText Markup Language', 'HighText Machine Language', 'Hyperlink Text Markup Language', 'HyperText Modern Language'],
+                answer: 0
+            },
+            {
+                text: 'Qual animal produz leite para alimentar seus filhotes?',
+                options: ['Vaca', 'Pato', 'Galinha', 'Cobra'],
+                answer: 0
+            },
+            {
+                text: 'Qual metal é considerado ferromagnético?',
+                options: ['Ferro', 'Prata', 'Ouro', 'Cobre'],
+                answer: 0
+            },
+            {
+                text: 'Qual instrumento é usado para medir pressão atmosférica?',
+                options: ['Barômetro', 'Termômetro', 'Anemômetro', 'Higrômetro'],
+                answer: 0
+            },
+            {
+                text: 'Quantos segundos existem em um minuto?',
+                options: ['30', '45', '60', '75'],
+                answer: 2
+            },
+            {
+                text: 'Qual animal é o mais rápido em terra?',
+                options: ['Leão', 'Tigre', 'Guepardo', 'Antílope'],
+                answer: 2
+            },
+            {
+                text: 'Quantos continentes existem no mundo?',
+                options: ['5', '6', '7', '8'],
+                answer: 2
+            },
+            {
+                text: 'Quantas cores existem no arco-íris tradicional?',
+                options: ['5', '6', '7', '8'],
+                answer: 2
+            },
+            {
+                text: 'Qual é a capital do Japão?',
+                options: ['Seul', 'Pequim', 'Tóquio', 'Bangkok'],
+                answer: 2
+            },
+            {
+                text: 'Qual fruta é usada para fazer guacamole?',
+                options: ['Banana', 'Abacate', 'Tomate', 'Limão'],
+                answer: 1
+            },
+            {
+                text: 'Como se chama um programa que protege o computador de vírus?',
+                options: ['Editor', 'Antivírus', 'Navegador', 'Reprodutor'],
+                answer: 1
+            },
+            {
+                text: 'Qual é o estado sólido da água?',
+                options: ['Líquido', 'Gás', 'Gelo', 'Vapor'],
+                answer: 2
+            },
+            {
+                text: 'Qual é o satélite natural da Terra?',
+                options: ['Sol', 'Marte', 'Lua', 'Netuno'],
+                answer: 2
+            }
+        ];
+
+        const prizes = ['R$ 500', 'R$ 1.000', 'R$ 5.000', 'R$ 10.000', 'R$ 25.000', 'R$ 50.000', 'R$ 100.000', 'R$ 200.000', 'R$ 500.000', 'R$ 1.000.000'];
+
+        const questionText = document.getElementById('question-text');
+        const optionsContainer = document.getElementById('options');
+        const currentStep = document.getElementById('current-step');
+        const prizeDisplay = document.getElementById('prize-display');
+        const safePrizeDisplay = document.getElementById('safe-prize');
+        const messageText = document.getElementById('message-text');
+        const prizeList = document.getElementById('prize-list');
+        const lifelineFifty = document.getElementById('lifeline-fifty');
+        const lifelineSkip = document.getElementById('lifeline-skip');
+        const lifelineAudience = document.getElementById('lifeline-audience');
+
+        const startBtn = document.getElementById('start-btn');
+        const fiftyBtn = document.getElementById('fifty-btn');
+        const skipBtn = document.getElementById('skip-btn');
+        const audienceBtn = document.getElementById('audience-btn');
+        const menuBtn = document.getElementById('menu-btn');
+        const resultBanner = document.getElementById('result-banner');
+
+        let currentIndex = 0;
+        let gameActive = false;
+        let usedFifty = false;
+        let usedSkip = false;
+        let usedAudience = false;
+        let answered = false;
+        let shuffledQuestions = [];
+        const safeSteps = [4, 7];
+
+        const setStatus = (text) => {
+            messageText.textContent = text;
+        };
+
+        const questionAudio = new Audio('sons/sspsurvival-clock-clock-sound-clock-clock-time-10343.mp3');
+        questionAudio.preload = 'auto';
+        questionAudio.volume = 0.55;
+
+        const playQuestionSound = () => {
+            if (!questionAudio.paused) {
+                questionAudio.currentTime = 0;
+            }
+            questionAudio.play().catch(() => {
+                // O navegador pode bloquear áudio automático até a primeira interação.
+            });
+        };
+
+        const playTone = (frequency, duration, type = 'sine') => {
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = ctx.createOscillator();
+            const gain = ctx.createGain();
+            oscillator.type = type;
+            oscillator.frequency.value = frequency;
+            oscillator.connect(gain);
+            gain.connect(ctx.destination);
+            gain.gain.setValueAtTime(0.0001, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.2, ctx.currentTime + 0.02);
+            oscillator.start();
+            gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + duration / 1000);
+            oscillator.stop(ctx.currentTime + duration / 1000 + 0.05);
+        };
+
+        const playCorrect = () => playTone(880, 140, 'triangle');
+        const playWrong = () => playTone(220, 360, 'sawtooth');
+        const playWin = () => {
+            playTone(880, 120, 'sine');
+            setTimeout(() => playTone(1047, 120, 'sine'), 140);
+            setTimeout(() => playTone(1318, 250, 'sine'), 280);
+        };
+        const playLose = () => {
+            playTone(220, 200, 'sine');
+            setTimeout(() => playTone(196, 200, 'sine'), 250);
+        };
+
+        const showResult = (message, type) => {
+            resultBanner.textContent = message;
+            resultBanner.className = `result-banner show ${type}`;
+        };
+
+        const hideResult = () => {
+            resultBanner.className = 'result-banner';
+            resultBanner.textContent = '';
+        };
+
+        const shuffleArray = (array) => {
+            return array.slice().sort(() => Math.random() - 0.5);
+        };
+
+        const getSafePrize = () => {
+            if (currentIndex > safeSteps[1]) return prizes[safeSteps[1]];
+            if (currentIndex > safeSteps[0]) return prizes[safeSteps[0]];
+            return 'R$ 0';
+        };
+
+        const updatePrizeList = () => {
+            [...prizeList.children].forEach((item, index) => {
+                item.classList.toggle('active', index === currentIndex);
+            });
+        };
+
+        const updateGameState = () => {
+            updatePrizeList();
+            safePrizeDisplay.textContent = getSafePrize();
+            fiftyBtn.disabled = usedFifty || answered || !gameActive;
+            skipBtn.disabled = usedSkip || answered || !gameActive;
+            audienceBtn.disabled = usedAudience || answered || !gameActive;
+        };
+
+        const renderQuestion = () => {
+            const question = shuffledQuestions[currentIndex];
+            playQuestionSound();
+            questionText.textContent = question.text;
+            currentStep.textContent = `${currentIndex + 1} / ${shuffledQuestions.length}`;
+            prizeDisplay.textContent = prizes[currentIndex];
+            optionsContainer.innerHTML = '';
+
+            const shuffledOptions = question.options
+                .map((option, idx) => ({ option, idx }))
+                .sort(() => Math.random() - 0.5);
+
+            shuffledOptions.forEach(({ option, idx }) => {
+                const button = document.createElement('button');
+                button.className = 'option-button';
+                button.textContent = option;
+                button.dataset.index = idx;
+                button.addEventListener('click', () => selectOption(idx));
+                optionsContainer.appendChild(button);
+            });
+
+            setStatus('Escolha uma resposta.');
+            answered = false;
+            hideResult();
+            updateGameState();
+        };
+
+        const selectOption = (index) => {
+            if (!gameActive || answered) return;
+            answered = true;
+            const question = shuffledQuestions[currentIndex];
+            const buttons = [...optionsContainer.children];
+
+            buttons.forEach((button) => {
+                button.disabled = true;
+                const buttonIndex = Number(button.dataset.index);
+                if (buttonIndex === question.answer) {
+                    button.classList.add('correct');
+                }
+                if (buttonIndex === index && buttonIndex !== question.answer) {
+                    button.classList.add('wrong');
+                }
+            });
+
+            updateGameState();
+
+            if (index === question.answer) {
+                playCorrect();
+                setStatus('Correto! Avançando para a próxima pergunta...');
+                setTimeout(() => nextQuestion(), 1200);
+            } else {
+                playWrong();
+                setStatus(`Errado! A resposta correta era "${question.options[question.answer]}". Final do jogo.`);
+                endGame(false);
+            }
+        };
+
+        const nextQuestion = () => {
+            currentIndex += 1;
+            if (currentIndex >= shuffledQuestions.length) {
+                endGame(true);
+                return;
+            }
+            renderQuestion();
+        };
+
+        const applyFifty = () => {
+            if (!gameActive || usedFifty || answered) return;
+            usedFifty = true;
+            lifelineFifty.querySelector('span').textContent = 'Usada';
+            playTone(520, 140, 'square');
+            setStatus('50/50 usado. Duas opções foram removidas.');
+            removeWrongOptions();
+            updateGameState();
+        };
+
+        const removeWrongOptions = () => {
+            const question = shuffledQuestions[currentIndex];
+            const wrongIndices = question.options.map((opt, idx) => idx).filter((idx) => idx !== question.answer);
+            wrongIndices.sort(() => Math.random() - 0.5);
+            let removed = 0;
+            const buttons = [...optionsContainer.children];
+            for (const wrongIndex of wrongIndices) {
+                if (removed >= 2) break;
+                const btn = buttons.find((button) => Number(button.dataset.index) === wrongIndex);
+                if (btn) {
+                    btn.classList.add('disabled');
+                    btn.disabled = true;
+                    removed += 1;
+                }
+            }
+        };
+
+        const skipQuestion = () => {
+            if (!gameActive || usedSkip || answered) return;
+            usedSkip = true;
+            lifelineSkip.querySelector('span').textContent = 'Usada';
+            playTone(620, 160, 'triangle');
+            currentIndex += 1;
+            if (currentIndex >= shuffledQuestions.length) {
+                endGame(true);
+                return;
+            }
+            renderQuestion();
+            setStatus('Pergunta pulada. Boa sorte na próxima!');
+        };
+
+        const endGame = (victory) => {
+            gameActive = false;
+            const wonPoints = victory
+                ? 1000000
+                : Number(getSafePrize().replace(/[^0-9]/g, ''));
+            GameScoreCounter.add('bilhao', wonPoints);
+            fiftyBtn.disabled = true;
+            skipBtn.disabled = true;
+            audienceBtn.disabled = true;
+            startBtn.textContent = 'Reiniciar Quiz';
+            if (victory) {
+                currentIndex = shuffledQuestions.length - 1;
+                prizeDisplay.textContent = prizes[prizes.length - 1];
+                const finalPrize = prizes[prizes.length - 1];
+                questionText.textContent = 'Vitória! Você conquistou o prêmio máximo.';
+                optionsContainer.innerHTML = '';
+                setStatus('Parabéns! Você venceu o Jogo do Bilhão e conquistou ' + finalPrize + '!');
+                showResult(`Prêmio final: ${finalPrize}`, 'success');
+                playWin();
+            } else {
+                const safePrize = getSafePrize();
+                questionText.textContent = 'Game Over — você saiu com ' + safePrize + '.';
+                optionsContainer.innerHTML = '';
+                showResult(`Resposta correta: ${shuffledQuestions[currentIndex].options[shuffledQuestions[currentIndex].answer]}`, 'failure');
+                playLose();
+            }
+            updateGameState();
+        };
+
+        const audiencePercentages = () => {
+            const question = shuffledQuestions[currentIndex];
+            const percentages = Array(question.options.length).fill(0);
+            const correctIndex = question.answer;
+            const correctChance = 50 + Math.floor(Math.random() * 21);
+            let remaining = 100 - correctChance;
+
+            percentages[correctIndex] = correctChance;
+            const wrongIndices = question.options.map((_, idx) => idx).filter((idx) => idx !== correctIndex);
+
+            wrongIndices.forEach((idx, index) => {
+                if (index === wrongIndices.length - 1) {
+                    percentages[idx] = remaining;
+                } else {
+                    const value = Math.floor(Math.random() * (remaining - (wrongIndices.length - index - 1))) + 1;
+                    percentages[idx] = value;
+                    remaining -= value;
+                }
+            });
+
+            return percentages;
+        };
+
+        const applyAudience = () => {
+            if (!gameActive || usedAudience || answered) return;
+            usedAudience = true;
+            lifelineAudience.querySelector('span').textContent = 'Usada';
+            playTone(480, 140, 'triangle');
+            const percentages = audiencePercentages();
+            const question = shuffledQuestions[currentIndex];
+            const detail = question.options
+                .map((option, index) => `${option}: ${percentages[index]}%`)
+                .join(' • ');
+
+            setStatus(`Ajuda da plateia: ${detail}`);
+            updateGameState();
+        };
+
+        const startGame = () => {
+            if (!gameActive) {
+                gameActive = true;
+            }
+            currentIndex = 0;
+            usedFifty = false;
+            usedSkip = false;
+            usedAudience = false;
+            shuffledQuestions = shuffleArray(questions).slice(0, 10);
+            lifelineFifty.querySelector('span').textContent = 'Disponível';
+            lifelineSkip.querySelector('span').textContent = 'Disponível';
+            lifelineAudience.querySelector('span').textContent = 'Disponível';
+            startBtn.textContent = 'Reiniciar Quiz';
+            renderQuestion();
+            setStatus('Quiz iniciado! Boa sorte.');
+        };
+
+        const goToMenu = () => {
+            window.top.location.href = './index.html?menu=1';
+        };
+
+        startBtn.addEventListener('click', startGame);
+        fiftyBtn.addEventListener('click', applyFifty);
+        skipBtn.addEventListener('click', skipQuestion);
+        audienceBtn.addEventListener('click', applyAudience);
+        menuBtn.addEventListener('click', goToMenu);
+
+        setStatus('Clique em "Começar Quiz" para iniciar o Jogo do Bilhão.');
+    </script>
+    <script>
+        // Allow parent page to request start via postMessage
+        window.addEventListener('message', (e) => {
+            try {
+                const msg = e.data;
+                if (msg && msg.type === 'start') {
+                    const btn = document.getElementById('start-btn');
+                    if (btn && !btn.disabled) btn.click();
+                }
+            } catch (err) { /* ignore */ }
+        });
+    </script>
+</body>
+</html>

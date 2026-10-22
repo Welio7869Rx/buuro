@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carrier Air Wing - Dashboard de Trapaças & Códigos</title>
+    <style>
+        :root {
+            --primary: #0a192f;
+            --secondary: #172a45;
+            --accent: #64ffda;
+            --text-main: #e6f1ff;
+            --text-muted: #8892b0;
+            --danger: #ff4a4a;
+            --success: #4aff86;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--primary);
+            color: var(--text-main);
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            padding: 40px 20px;
+            background: linear-gradient(135deg, var(--secondary) 0%, var(--primary) 100%);
+            border-bottom: 3px solid var(--accent);
+            margin-bottom: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 30px;
+        }
+
+        nav .menu-panel {
+            background-color: var(--secondary);
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid rgba(100, 255, 218, 0.1);
+        }
+
+        nav h2 {
+            font-size: 1.2rem;
+            color: var(--accent);
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            border-bottom: 1px solid var(--text-muted);
+            padding-bottom: 5px;
+        }
+
+        nav ul {
+            list-style: none;
+        }
+
+        nav ul li {
+            margin-bottom: 10px;
+        }
+
+        nav ul li a {
+            color: var(--text-main);
+            text-decoration: none;
+            display: block;
+            padding: 10px;
+            background-color: rgba(255,255,255,0.05);
+            border-radius: 4px;
+            transition: all 0.3s;
+        }
+
+        nav ul li a:hover, nav ul li a.active {
+            background-color: var(--accent);
+            color: var(--primary);
+            font-weight: bold;
+            transform: translateX(5px);
+        }
+
+        main {
+            background-color: var(--secondary);
+            padding: 30px;
+            border-radius: 8px;
+            min-height: 600px;
+            border: 1px solid rgba(100, 255, 218, 0.1);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        h3 {
+            color: var(--accent);
+            margin-bottom: 20px;
+            font-size: 1.6rem;
+        }
+
+        .grid-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .card {
+            background-color: rgba(10, 25, 47, 0.7);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 6px;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.2s;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            border-color: var(--accent);
+        }
+
+        .card h4 {
+            color: var(--text-main);
+            margin-bottom: 10px;
+            font-size: 1.2rem;
+        }
+
+        .card .address {
+            font-family: 'Courier New', Courier, monospace;
+            background-color: #000;
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: var(--accent);
+            font-size: 0.9rem;
+            display: inline-block;
+            margin-bottom: 10px;
+        }
+
+        .card p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        .status-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: var(--text-muted);
+        }
+
+        .status-badge.active {
+            background-color: var(--success);
+            box-shadow: 0 0 10px var(--success);
+        }
+
+        /* Tabelas */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background-color: rgba(10, 25, 47, 0.5);
+        }
+
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        th {
+            background-color: rgba(100, 255, 218, 0.1);
+            color: var(--accent);
+        }
+
+        tr:hover {
+            background-color: rgba(255,255,255,0.02);
+        }
+
+        /* Formulários e Inputs */
+        .console-box {
+            background-color: #000;
+            color: #4aff86;
+            font-family: 'Courier New', Courier, monospace;
+            padding: 20px;
+            border-radius: 6px;
+            margin-top: 20px;
+            overflow-x: auto;
+            max-height: 400px;
+            border: 1px solid #222;
+        }
+
+        .btn {
+            background-color: transparent;
+            border: 1px solid var(--accent);
+            color: var(--accent);
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+            display: inline-block;
+            margin-top: 15px;
+        }
+
+        .btn:hover {
+            background-color: var(--accent);
+            color: var(--primary);
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: var(--text-muted);
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 10px;
+            background-color: var(--primary);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: #fff;
+            border-radius: 4px;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 5px;
+            padding: 20px;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Carrier Air Wing - Cheat Database Panel</h1>
+        <p>Painel Avançado para Geração de Códigos, Edição de RAM e Cheat Management (Capcom 1990)</p>
+    </header>
+
+    <div class="container">
+        <nav>
+            <div class="menu-panel">
+                <h2>Navegação</h2>
+                <ul>
+                    <li><a href="#" class="menu-btn active" data-target="dashboard">Dashboard RAM</a></li>
+                    <li><a href="#" class="menu-btn" data-target="mame-codes">MAME Cheat Engine</a></li>
+                    <li><a href="#" class="menu-btn" data-target="generator">Gerador de Arquivo .CHT</a></li>
+                    <li><a href="#" class="menu-btn" data-target="stages">Lista de Estágios & IDs</a></li>
+                </ul>
+            </div>
+        </nav>
+
+        <main>
+            <!-- ABA 1: DASHBOARD RAM -->
+            <section id="dashboard" class="tab-content active">
+                <h3>Monitoramento de Endereços RAM (Player 1 & 2)</h3>
+                <p>Estes são os endereços estáticos mapeados para a arquitetura CPS-1 no jogo.</p>
+                
+                <div class="grid-cards">
+                    <div class="card">
+                        <div class="status-badge active"></div>
+                        <h4>P1 Combustível Infinito</h4>
+                        <span class="address">0xFF8237</span>
+                        <p>Trava a barra de vida/energia do caça principal. Valor Máximo: 60 (Hex).</p>
+                    </div>
+                    <div class="card">
+                        <div class="status-badge active"></div>
+                        <h4>P1 Dinheiro Máximo</h4>
+                        <span class="address">0xFF8243</span>
+                        <p>Permite comprar qualquer arma secundária ou escudo na loja de interceptação.</p>
+                    </div>
+                    <div class="card">
+                        <div class="status-badge"></div>
+                        <h4>P1 Invencibilidade</h4>
+                        <span class="address">0xFF8211</span>
+                        <p>Desabilita as caixas de colisão de dano do jogador contra projéteis.</p>
+                    </div>
+                    <div class="card">
+                        <div class="status-badge active"></div>
+                        <h4>P1 Arma Principal (Tiro)</h4>
+                        <span class="address">0xFF8285</span>
+                        <p>Define o nível de upgrade do tiro padrão da metralhadora vulcan.</p>
+                    </div>
+                </div>
+
+                <div style="margin-top: 30px;">
+                    <h3>Banco de Dados de Endereços Completos</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Função do Cheat</th>
+                                <th>Endereço RAM</th>
+                                <th>Tipo de Dado</th>
+                                <th>Valor Padrão</th>
+                                <th>Descrição Técnico</th>
+                            </tr>
+                        </thead>
+<?xml version="1.0" encoding="utf-8"?>
+<cheat desc="Carrier Air Wing (World 901012)">
+<script state="run">
+<action>maincpu.pb@FF8237=60</action>
+</script>
+<description>Infinite Fuel Player 1</description>
+</cheat>
+
+Gerador Customizado de Códigos de Trapaça
+Configure as opções abaixo para gerar seu arquivo pronto de trapaça.
+Escolha o Cheat Base:
+Combustível Infinito (P1)
+Dinheiro Infinito (P1)
+Tiro Nível Máximo (P1)
+
+
+Valor em Decimal (0 a 255):
+Gerar Linha de Código
+// O código gerado aparecerá aqui...
+
+IDs de Modificação de Fases (Stage Selector)
+Modifique o endereço 0xFF8007 com os valores abaixo para pular direto para a missão desejada:
+
+ID Hex
+	Nome da Missão
+	Alvo/Chefe Principal
+
+Carrier Air Wing Memory Map Project © Capcom Architecture Retro-Engineering.
+// Sistema de abas dinâmico
+const menuButtons = document.querySelectorAll('.menu-btn');
+const tabContents = document.querySelectorAll('.tab-content');
+menuButtons.forEach(btn => {
+btn.addEventListener('click', (e) => {
+e.preventDefault();
+menuButtons.forEach(b => b.classList.remove('active'));
+tabContents.forEach(t => t.classList.remove('active'));
+btn.classList.add('active');
+const target = btn.getAttribute('data-target');
+document.getElementById(target).classList.add('active');
+});
+});
+// Loop estruturado para povoar tabelas repetitivas simulando o grande volume de dados do jogo
+const ramBody = document.getElementById('table-ram-body');
+const ramData = [
+{name: "P1 Infinite Fuel", addr: "FF8237", type: "Byte", def: "60", desc: "Força o combustível a ficar travado no máximo."},
+{name: "P1 Infinite Cash", addr: "FF8243", type: "DWord", def: "999999", desc: "Força o contador de dinheiro a ficar estável."},
+{name: "P1 Gun Level", addr: "FF8285", type: "Byte", def: "07", desc: "Aumenta o tiro comum para a potência máxima."},
+{name: "P1 Shield Energy", addr: "FF8239", type: "Byte", def: "03", desc: "Mantém os escudos de absorção ativos."},
+{name: "P2 Infinite Fuel", addr: "FF8437", type: "Byte", def: "60", desc: "Mesmo efeito que o P1, direcionado ao player 2."},
+{name: "P2 Infinite Cash", addr: "FF8443", type: "DWord", def: "999999", desc: "Carteira travada para o segundo caça."},
+{name: "Stage Selector Address", addr: "FF8007", type: "Byte", def: "00", desc: "Indica o ponteiro da fase ativa carregada na memória."}
+];
+// Inserção automática expandida
+ramData.forEach(item => {
+const tr = document.createElement('tr');
+tr.innerHTML = <td><b>${item.name}</b></td><td><span class="address">${item.addr}</span></td><td>${item.type}</td><td>${item.def}</td><td>${item.desc}</td>;
+ramBody.appendChild(tr);
+});
+// Gerador de fases
+const stagesBody = document.getElementById('table-stages');
+const stages = [
+{id: "00", name: "Mission 1 - Raid on Mid-Ocean Base", boss: "C-202 Titan Transport"},
+{id: "01", name: "Mission 2 - Secret Air Base in Desert", boss: "Heavy Bomber 'Black Jack'"},
+{id: "02", name: "Mission 3 - Fortress Over The Sea", boss: "Kirov-class Battleship"},
+{id: "03", name: "Mission 4 - Attack the Underground Base", boss: "Drill Tank 'Mogura'"},
+{id: "04", name: "Mission 5 - Defense of the Air Wing", boss: "Arsenal Ship Launcher"},
+{id: "05", name: "Mission 6 - Icebound Mountain Pass", boss: "Laser Defense Battery"},
+{id: "06", name: "Mission 7 - Space Shuttle Launch Pad", boss: "Rocket Booster Platform"},
+{id: "07", name: "Mission 8 - Outer Space Dogfight", boss: "Orbital Satellite Laser"}
+];
+stages.forEach(stg => {
+const tr = document.createElement('tr');
+tr.innerHTML = <td><code>0x${stg.id}</code></td><td>${stg.name}</td><td>${stg.boss}</td>;
+stagesBody.appendChild(tr);
+});
+// Lógica do gerador customizado
+document.getElementById('gen-btn').addEventListener('click', () => {
+const type = document.getElementById('cheat-select').value;
+const val = parseInt(document.getElementById('custom-val').value).toString(16).toUpperCase();
+let addr = "FF8237";
+if(type === "money") addr = "FF8243";
+if(type === "weapon") addr = "FF8285";
+const output = // Código Gerado para Emuladores CPS1\n# RomName: cawing\n# Fix Address [${addr}] To Value [${val}]\nmaincpu.pb@${addr}=${val};
+document.getElementById('output-generator').innerText = output;
+});
+
+

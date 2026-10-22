@@ -1,0 +1,22 @@
+# Dependências do Jogo da Forca (Python)
+
+# Não há dependências externas necessárias!
+# Tudo usa a biblioteca padrão do Python.
+
+# Módulos da stdlib usados:
+# - asyncio (3.4+)
+# - random (stdlib)
+# - sys (stdlib)
+# - os (stdlib)
+# - enum (3.4+)
+
+# Plataforma específica:
+# - winsound (Windows only) - já vem instalado
+
+# Para executar:
+# python script.py
+
+# Ou instale normalmente sem dependências:
+# pip install -r requirements.txt
+
+# Será um no-op já que não há dependências!

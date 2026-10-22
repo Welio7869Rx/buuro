@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Abrir Jogo do Bilhão</title>
+  <style>body{display:flex;align-items:center;justify-content:center;height:100vh;margin:0;font-family:Segoe UI, sans-serif;background:#111;color:#fff}a.button{display:inline-block;padding:12px 18px;border-radius:8px;background:#27ae60;color:#fff;text-decoration:none;font-weight:700}</style>
+</head>
+<body>
+  <div style="text-align:center">
+    <h1>Abrir Jogo do Bilhão</h1>
+    <p>Clique para abrir o jogo do Bilhão em tela inteira.</p>
+    <p><a class="button" id="open" href="jogo-do-bilhao.html">Abrir Jogo do Bilhão</a></p>
+    <p style="opacity:0.8;margin-top:12px">Se preferir, o jogo também abre pela página de integração: <a href="duplo_jogos.html" style="color:#2b8cff">Duplo Jogos</a>.</p>
+  </div>
+  <script>
+    // Tenta abrir imediatamente (pode ser bloqueado pelo navegador)
+    (function(){
+      try {
+        // abrindo na mesma aba
+        // window.location.href = 'jogo-do-bilhao.html';
+        // Em vez de forçar redirect, deixamos o link para o usuário
+      } catch(e){}
+    })();
+  </script>
+</body>
+</html>

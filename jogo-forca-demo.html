@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎮 Forca - Versão Aprimorada com Novos Recursos</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            text-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .game-board {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 16px;
+            padding: 25px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .stats-panel {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .stat-box {
+            background: rgba(255, 255, 255, 0.08);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            border-left: 4px solid #3498db;
+        }
+
+        .stat-box.combo {
+            border-left-color: #e74c3c;
+        }
+
+        .stat-box.score {
+            border-left-color: #2ecc71;
+        }
+
+        .stat-box.difficulty {
+            border-left-color: #f39c12;
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            opacity: 0.7;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(52, 152, 219, 0.4);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #9b59b6, #8e44ad);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(155, 89, 182, 0.4);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #2ecc71, #27ae60);
+            color: white;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+        }
+
+        select {
+            padding: 10px 15px;
+            border-radius: 8px;
+            border: 2px solid #3498db;
+            background: rgba(0, 0, 0, 0.2);
+            color: white;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+
+        .word-display {
+            font-size: 3rem;
+            letter-spacing: 15px;
+            text-align: center;
+            margin: 30px 0;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            text-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+
+        .keyboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(40px, 1fr));
+            gap: 8px;
+            margin: 20px 0;
+        }
+
+        .keyboard button {
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s ease;
+        }
+
+        .keyboard button:hover:not(:disabled) {
+            background: rgba(255, 255, 255, 0.4);
+            transform: scale(1.1);
+        }
+
+        .keyboard button:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .keyboard button.correct {
+            background: #2ecc71;
+            border-color: #27ae60;
+        }
+
+        .keyboard button.wrong {
+            background: #e74c3c;
+            border-color: #c0392b;
+            animation: shake 0.3s;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(200px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(200px);
+                opacity: 0;
+            }
+        }
+
+        .notification {
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .message {
+            font-size: 1.5rem;
+            font-weight: bold;
+            text-align: center;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            min-height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .combo-display {
+            text-align: center;
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #ff6b6b;
+            margin: 15px 0;
+            min-height: 30px;
+        }
+
+        .combo-display.active {
+            animation: pulse 0.6s ease-out;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        .stats-summary {
+            background: rgba(255, 255, 255, 0.08);
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            font-size: 0.95rem;
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 6px;
+        }
+
+        .stat-item strong {
+            margin-left: 10px;
+            color: #2ecc71;
+        }
+
+        .floating-text {
+            position: fixed;
+            pointer-events: none;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            z-index: 1000;
+        }
+
+        .bottom-section {
+            text-align: center;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .feature-list {
+            text-align: left;
+            display: inline-block;
+            margin-top: 15px;
+        }
+
+        .feature-list li {
+            margin: 8px 0;
+            list-style: none;
+        }
+
+        .feature-list li:before {
+            content: "✓ ";
+            color: #2ecc71;
+            font-weight: bold;
+            margin-right: 8px;
+        }
+
+        @media (max-width: 768px) {
+            .game-board {
+                grid-template-columns: 1fr;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .word-display {
+                font-size: 2rem;
+                letter-spacing: 10px;
+            }
+
+            .stats-panel {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎮 Jogo da Forca Aprimorado</h1>
+            <p>Com novo sistema de pontuação, combo e efeitos sonoros!</p>
+        </div>
+
+        <div class="game-board">
+            <!-- Main Game Panel -->
+            <div class="card">
+                <h2>🎮 Jogo</h2>
+                
+                <div class="stats-panel">
+                    <div class="stat-box difficulty">
+                        <div class="stat-label">Dificuldade</div>
+                        <select id="difficulty-select">
+                            <option value="facil">Fácil (8 vidas)</option>
+                            <option value="normal" selected>Normal (6 vidas)</option>
+                            <option value="dificil">Difícil (4 vidas)</option>
+                        </select>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">❤️ Vidas</div>
+                        <div class="stat-value" id="lives">6</div>
+                    </div>
+                    <div class="stat-box score">
+                        <div class="stat-label">💰 Pontuação</div>
+                        <div class="stat-value" id="score">0</div>
+                    </div>
+                    <div class="stat-box combo">
+                        <div class="stat-label">🔥 Combo</div>
+                        <div class="stat-value" id="combo">0</div>
+                    </div>
+                </div>
+
+                <div class="word-display" id="word-display">_ _ _ _ _</div>
+
+                <div class="combo-display" id="combo-display"></div>
+
+                <div class="message" id="message">Clique em uma letra para começar!</div>
+
+                <div class="keyboard" id="keyboard"></div>
+
+                <div class="controls">
+                    <button class="btn-primary" id="start-btn">▶️ Novo Jogo</button>
+                    <button class="btn-secondary" id="hint-btn">💡 Dica</button>
+                    <button class="btn-danger" id="sound-toggle">🔊 Som</button>
+                </div>
+            </div>
+
+            <!-- Stats Panel -->
+            <div class="card">
+                <h2>📊 Estatísticas</h2>
+                
+                <div class="stats-summary">
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <span>Partidas:</span>
+                            <strong id="stat-games">0</strong>
+                        </div>
+                        <div class="stat-item">
+                            <span>Vitórias:</span>
+                            <strong id="stat-wins">0</strong>
+                        </div>
+                        <div class="stat-item">
+                            <span>Taxa de Acerto:</span>
+                            <strong id="stat-accuracy">0%</strong>
+                        </div>
+                        <div class="stat-item">
+                            <span>Taxa de Vitória:</span>
+                            <strong id="stat-winrate">0%</strong>
+                        </div>
+                        <div class="stat-item">
+                            <span>Melhor Score:</span>
+                            <strong id="stat-best">0</strong>
+                        </div>
+                        <div class="stat-item">
+                            <span>Maior Combo:</span>
+                            <strong id="stat-combo">0</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <h3 style="margin-top: 20px; margin-bottom: 10px;">✨ Novos Recursos</h3>
+                <ul class="feature-list">
+                    <li>🔥 Sistema de Combo com bônus</li>
+                    <li>💰 Pontuação dinâmica</li>
+                    <li>🎵 20+ efeitos sonoros</li>
+                    <li>✨ Texto flutuante</li>
+                    <li>📈 3 níveis de dificuldade</li>
+                    <li>📊 Rastreamento de estatísticas</li>
+                    <li>⭐ Notificações de marco</li>
+                    <li>💾 Salvar progresso</li>
+                </ul>
+
+                <button class="btn-success" id="reset-stats" style="width: 100%; margin-top: 15px;">🔄 Resetar Estatísticas</button>
+            </div>
+        </div>
+
+        <div class="bottom-section">
+            <p><strong>💡 Dica:</strong> Ganhe mais pontos em dificuldades maiores! O combo multiplica seus pontos a cada 3 acertos consecutivos.</p>
+            <p style="margin-top: 10px; font-size: 0.9rem; opacity: 0.8;">Desenvolvido com ❤️ usando SoundManager e GameSystems</p>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="sound-manager.js"></script>
+    <script src="game-systems.js"></script>
+
+    <script>
+        // ==========================================
+        // Game Setup
+        // ==========================================
+        const PALAVRAS = [
+            'JAVASCRIPT', 'PROGRAMACAO', 'COMPUTADOR', 'ALGORITMO', 'VARIAVEL',
+            'FUNCAO', 'BIBLIOTECA', 'FRAMEWORK', 'BACKEND', 'FRONTEND',
+            'DESENVOLVIMENTO', 'SOFTWARE', 'HARDWARE', 'SEGURANCA', 'AUTOMACAO'
+        ];
+
+        // State
+        let gameState = {
+            word: '',
+            guessed: [],
+            lives: 6,
+            gameOver: false,
+            gameWon: false
+        };
+
+        // Initialize Systems
+        let soundManager;
+        let gameScore;
+        let difficulty;
+        let floatingText;
+        let notifications;
+        let stats;
+
+        // DOM Elements
+        const wordDisplay = document.getElementById('word-display');
+        const keyboard = document.getElementById('keyboard');
+        const message = document.getElementById('message');
+        const livesDisplay = document.getElementById('lives');
+        const scoreDisplay = document.getElementById('score');
+        const comboDisplay = document.getElementById('combo');
+        const comboDisplayText = document.getElementById('combo-display');
+        const startBtn = document.getElementById('start-btn');
+        const hintBtn = document.getElementById('hint-btn');
+        const soundToggle = document.getElementById('sound-toggle');
+        const difficultySelect = document.getElementById('difficulty-select');
+        const resetStatsBtn = document.getElementById('reset-stats');
+
+        // Stats display elements
+        const statGames = document.getElementById('stat-games');
+        const statWins = document.getElementById('stat-wins');
+        const statAccuracy = document.getElementById('stat-accuracy');
+        const statWinrate = document.getElementById('stat-winrate');
+        const statBest = document.getElementById('stat-best');
+        const statCombo = document.getElementById('stat-combo');
+
+        // ==========================================
+        // Initialization
+        // ==========================================
+        async function init() {
+            soundManager = new SoundManager('config.json');
+            gameScore = new GameScore();
+            difficulty = new DifficultyManager();
+            floatingText = new FloatingTextManager(document.body);
+            notifications = new NotificationManager(document.body);
+            stats = new StatsTracker();
+
+            // Load saved stats
+            stats.load();
+            updateStatsDisplay();
+
+            // Event listeners
+            startBtn.addEventListener('click', startGame);
+            hintBtn.addEventListener('click', getHint);
+            soundToggle.addEventListener('click', toggleSound);
+            difficultySelect.addEventListener('change', changeDifficulty);
+            resetStatsBtn.addEventListener('click', resetStats);
+
+            // Initialize game
+            startGame();
+        }
+
+        // ==========================================
+        // Game Functions
+        // ==========================================
+        function startGame() {
+            // Apply difficulty
+            const difficultyName = difficultySelect.value;
+            difficulty.setDifficulty(difficultyName);
+            gameScore.setDifficultyMultiplier(difficultyName);
+
+            const settings = difficulty.getCurrentSettings();
+            gameState.lives = settings.lives;
+            gameState.word = PALAVRAS[Math.floor(Math.random() * PALAVRAS.length)];
+            gameState.guessed = [];
+            gameState.gameOver = false;
+            gameState.gameWon = false;
+
+            gameScore.reset();
+            gameScore.totalLetters = new Set(gameState.word.split('')).size;
+
+            // UI Update
+            livesDisplay.textContent = gameState.lives;
+            scoreDisplay.textContent = '0';
+            comboDisplay.textContent = '0';
+            message.textContent = '🎮 Jogo começou! Escolha uma letra...';
+            comboDisplayText.textContent = '';
+
+            // Create keyboard
+            createKeyboard();
+
+            // Play sound
+            soundManager.playStart();
+            notifications.show('Novo jogo iniciado! Boa sorte! 🍀', 'success');
+        }
+
+        function createKeyboard() {
+            keyboard.innerHTML = '';
+            'ABCDEFGHIJKLMNOPQRSTUVWXYZÁÉÍÓÚ'.split('').forEach(letter => {
+                const btn = document.createElement('button');
+                btn.textContent = letter;
+                btn.addEventListener('click', () => guessLetter(letter, btn));
+                keyboard.appendChild(btn);
+            });
+        }
+
+        function guessLetter(letter, btn) {
+            if (gameState.gameOver || gameState.guessed.includes(letter)) return;
+
+            gameState.guessed.push(letter);
+            btn.disabled = true;
+
+            if (gameState.word.includes(letter)) {
+                // Correct guess
+                btn.classList.add('correct');
+                soundManager.playCorrect();
+                
+                const result = gameScore.addCorrect();
+                updateDisplay();
+                
+                // Show floating text
+                const rect = btn.getBoundingClientRect();
+                floatingText.showPoints(result.points, rect.x, rect.y);
+                
+                // Check for combo milestone
+                const milestone = result.comboMilestone;
+                if (milestone) {
+                    soundManager.playCombo();
+                    notifications.showMilestone(`🔥 ${result.combo}x COMBO!`);
+                    comboDisplayText.textContent = `🔥 ${result.combo}x COMBO!`;
+                    comboDisplayText.classList.add('active');
+                    setTimeout(() => comboDisplayText.classList.remove('active'), 600);
+                }
+            } else {
+                // Wrong guess
+                btn.classList.add('wrong');
+                soundManager.playIncorrect();
+                
+                gameScore.addError();
+                gameState.lives--;
+                livesDisplay.textContent = gameState.lives;
+                
+                if (gameState.lives <= 0) {
+                    gameState.gameOver = true;
+                    message.textContent = `💀 Game Over! A palavra era: ${gameState.word}`;
+                    soundManager.playDefeat();
+                    notifications.show('Que pena! Você perdeu 😢', 'error');
+                    endGame(false);
+                }
+            }
+
+            scoreDisplay.textContent = gameScore.points;
+            comboDisplay.textContent = gameScore.combo;
+        }
+
+        function getHint() {
+            if (gameState.gameOver) return;
+            soundManager.playHint();
+            const remaining = gameState.word.split('').filter(l => !gameState.guessed.includes(l));
+            if (remaining.length > 0) {
+                const hint = remaining[Math.floor(Math.random() * remaining.length)];
+                message.textContent = `💡 Dica: A palavra contém a letra "${hint}"`;
+            }
+        }
+
+        function updateDisplay() {
+            const display = gameState.word
+                .split('')
+                .map(l => gameState.guessed.includes(l) ? l : '_')
+                .join(' ');
+
+            wordDisplay.textContent = display;
+
+            // Check if won
+            if (!display.includes('_')) {
+                gameState.gameWon = true;
+                gameState.gameOver = true;
+                gameScore.addCorrect(true); // Word bonus
+                message.textContent = '🎉 Você venceu!';
+                soundManager.playVictory();
+                notifications.showMilestone('Parabéns! Você venceu! 🎉');
+                endGame(true);
+            }
+        }
+
+        function endGame(won) {
+            // Disable keyboard
+            Array.from(keyboard.children).forEach(btn => btn.disabled = true);
+
+            // Record stats
+            const summary = gameScore.getSummary();
+            stats.recordGame(won, summary.totalPoints, summary.combo, 
+                           gameState.guessed.filter(l => gameState.word.includes(l)).length,
+                           gameState.guessed.length);
+            stats.save();
+            updateStatsDisplay();
+        }
+
+        function toggleSound() {
+            const enabled = soundManager.toggleSound();
+            soundToggle.style.opacity = enabled ? '1' : '0.5';
+            soundToggle.textContent = enabled ? '🔊 Som' : '🔇 Mudo';
+            notifications.show(enabled ? 'Som ativado!' : 'Som desativado!', 'info');
+        }
+
+        function changeDifficulty() {
+            startGame();
+        }
+
+        function resetStats() {
+            if (confirm('Tem certeza que deseja resetar todas as estatísticas?')) {
+                stats = new StatsTracker();
+                stats.save();
+                updateStatsDisplay();
+                notifications.show('Estatísticas resetadas!', 'warning');
+            }
+        }
+
+        function updateStatsDisplay() {
+            const summary = stats.getSummary();
+            statGames.textContent = summary.gamesPlayed;
+            statWins.textContent = summary.gamesWon;
+            statAccuracy.textContent = summary.accuracy + '%';
+            statWinrate.textContent = summary.winRate + '%';
+            statBest.textContent = summary.bestScore;
+            statCombo.textContent = summary.longestCombo;
+        }
+
+        // Start
+        init();
+    </script>
+</body>
+</html>

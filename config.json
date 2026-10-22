@@ -1,0 +1,201 @@
+{
+  "game": {
+    "initialLives": 6,
+    "difficulty": {
+      "facil": {
+        "lives": 8,
+        "hintMultiplier": 1.5,
+        "scoreMultiplier": 1.0,
+        "timeBonus": 500
+      },
+      "normal": {
+        "lives": 6,
+        "hintMultiplier": 1.0,
+        "scoreMultiplier": 1.5,
+        "timeBonus": 750
+      },
+      "dificil": {
+        "lives": 4,
+        "hintMultiplier": 0.5,
+        "scoreMultiplier": 2.5,
+        "timeBonus": 1000
+      }
+    },
+    "scoring": {
+      "basePoints": 100,
+      "comboMultiplier": 1.25,
+      "comboThreshold": 3,
+      "timeBonusSeconds": 10,
+      "perfectWordBonus": 500
+    },
+    "words": [
+      "JAVASCRIPT", "PROGRAMACAO", "NAVEGADOR", "COMPUTADOR", "FRONTEND",
+      "INTERNET", "BRASIL", "ALGORITMO", "VARIAVEL", "FUNCAO",
+      "BIBLIOTECA", "FRAMEWORK", "BACKEND", "DATABASE", "SERVIDOR",
+      "CSS", "HTML", "REACT", "PYTHON", "NODEJS", "ESTRUTURA",
+      "OBJETO", "ARRAY", "STRING", "BOOLEAN", "INTERFACE",
+      "RESPONSIVO", "SOFTWARE", "HARDWARE", "SISTEMA", "DESENVOLVIMENTO",
+      "COMPILADOR", "SEGURANCA", "LOGICA", "GITHUB", "CLOUD",
+      "SCRIPT", "APLICACAO", "EXPERIENCIA", "DADOS", "AUTOMACAO",
+      "DESIGN", "COMPONENTE", "TEMPLATES", "REUTILIZAVEL"
+    ]
+  },
+  "audio": {
+    "enabled": true,
+    "volume": 0.3,
+    "notes": {
+      "C4": 261.63,
+      "D4": 293.66,
+      "E4": 329.63,
+      "F4": 349.23,
+      "G4": 391.99,
+      "A4": 440.00,
+      "B4": 493.88,
+      "C5": 523.25,
+      "D5": 587.33,
+      "E5": 659.25,
+      "F5": 698.46,
+      "G5": 783.99,
+      "A5": 880.00,
+      "B5": 987.77,
+      "C6": 1046.50,
+      "A3": 220.00
+    },
+    "effects": {
+      "inicio": [
+        { "frequency": "C4", "duration": 130 },
+        { "frequency": "E4", "duration": 130 },
+        { "frequency": "G4", "duration": 260 }
+      ],
+      "acerto": [
+        { "frequency": "E4", "duration": 100 },
+        { "frequency": "G4", "duration": 100 },
+        { "frequency": "C5", "duration": 200 }
+      ],
+      "acertoRapido": [
+        { "frequency": "G4", "duration": 80 },
+        { "frequency": "C5", "duration": 80 },
+        { "frequency": "E5", "duration": 160 }
+      ],
+      "erro": [
+        { "frequency": "G4", "duration": 150 },
+        { "frequency": "D4", "duration": 300 },
+        { "frequency": "C4", "duration": 150 }
+      ],
+      "erroGrave": [
+        { "frequency": "D4", "duration": 200 },
+        { "frequency": "C4", "duration": 200 },
+        { "frequency": "A3", "duration": 400 }
+      ],
+      "dica": [
+        { "frequency": "D4", "duration": 120 },
+        { "frequency": "E4", "duration": 120 },
+        { "frequency": "F4", "duration": 120 }
+      ],
+      "dicaExtra": [
+        { "frequency": "F4", "duration": 100 },
+        { "frequency": "G4", "duration": 100 },
+        { "frequency": "A4", "duration": 100 },
+        { "frequency": "B4", "duration": 200 }
+      ],
+      "combo": [
+        { "frequency": "G4", "duration": 80 },
+        { "frequency": "B4", "duration": 80 },
+        { "frequency": "D5", "duration": 80 },
+        { "frequency": "G5", "duration": 160 }
+      ],
+      "comboX2": [
+        { "frequency": "C5", "duration": 100 },
+        { "frequency": "E5", "duration": 100 },
+        { "frequency": "G5", "duration": 100 },
+        { "frequency": "C6", "duration": 200 }
+      ],
+      "comboX3": [
+        { "frequency": "E5", "duration": 80 },
+        { "frequency": "G5", "duration": 80 },
+        { "frequency": "B5", "duration": 80 },
+        { "frequency": "C6", "duration": 80 },
+        { "frequency": "E6", "duration": 160 }
+      ],
+      "bonus": [
+        { "frequency": "C5", "duration": 120 },
+        { "frequency": "D5", "duration": 120 },
+        { "frequency": "E5", "duration": 120 },
+        { "frequency": "G5", "duration": 240 }
+      ],
+      "click": [
+        { "frequency": "A4", "duration": 50 }
+      ],
+      "levelUp": [
+        { "frequency": "G4", "duration": 150 },
+        { "frequency": "C5", "duration": 150 },
+        { "frequency": "G5", "duration": 300 }
+      ],
+      "aviso": [
+        { "frequency": "F5", "duration": 100 },
+        { "frequency": "F5", "duration": 100 },
+        { "frequency": "F5", "duration": 200 }
+      ],
+      "vitoria": [
+        { "frequency": "C4", "duration": 150 },
+        { "frequency": "E4", "duration": 150 },
+        { "frequency": "G4", "duration": 150 },
+        { "frequency": "C5", "duration": 400 },
+        { "frequency": "E5", "duration": 200 }
+      ],
+      "vitoriaGrande": [
+        { "frequency": "C4", "duration": 100 },
+        { "frequency": "E4", "duration": 100 },
+        { "frequency": "G4", "duration": 100 },
+        { "frequency": "C5", "duration": 100 },
+        { "frequency": "E5", "duration": 100 },
+        { "frequency": "G5", "duration": 100 },
+        { "frequency": "C6", "duration": 400 }
+      ],
+      "derrota": [
+        { "frequency": "F4", "duration": 300 },
+        { "frequency": "E4", "duration": 300 },
+        { "frequency": "D4", "duration": 300 },
+        { "frequency": "C4", "duration": 600 }
+      ],
+      "volta": [
+        { "frequency": "B4", "duration": 100 },
+        { "frequency": "G4", "duration": 200 }
+      ],
+      "menuAbrir": [
+        { "frequency": "C4", "duration": 120 },
+        { "frequency": "G4", "duration": 120 }
+      ]
+    }
+  },
+  "ui": {
+    "theme": "dark",
+    "animationsEnabled": true,
+    "responsive": true,
+    "soundEnabled": true,
+    "vibrationEnabled": true,
+    "showComboNotifications": true,
+    "showFloatingText": true
+  },
+  "features": {
+    "comboSystem": {
+      "enabled": true,
+      "resetOnError": true,
+      "visualFeedback": true
+    },
+    "scoreSystem": {
+      "enabled": true,
+      "showMilestones": true,
+      "leaderboard": true
+    },
+    "difficultyLevels": {
+      "enabled": true,
+      "lockHighestDifficulty": false
+    },
+    "timeBonus": {
+      "enabled": true,
+      "baseTime": 60,
+      "bonusPerSecond": 10
+    }
+  }
+}

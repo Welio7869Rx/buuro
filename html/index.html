@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jogo da Forca JS</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <div class="game-container">
+        <h1>Jogo da Forca</h1>
+        <p>Versão web independente. Clique nas letras, use a dica e tente adivinhar a palavra antes de ficar sem tentativas.</p>
+        <div id="forca" class="forca-status">Tentativas restantes: <span id="lives">6</span></div>
+        <p class="score-total">Pontos acumulados: <span data-score-total="forca">0</span></p>
+        
+        <div id="word-display" class="word-display"></div>
+
+        <div id="keyboard" class="keyboard"></div>
+
+        <div class="action-buttons">
+            <button id="music-toggle" class="reset-btn" type="button" aria-pressed="false">Ativar música</button>
+            <button id="reset-btn" class="reset-btn">Novo Jogo</button>
+            <button id="hint-btn" class="reset-btn">Mostrar Dica</button>
+            <a class="reset-btn menu-btn" href="../index.html?menu=1" target="_top">Voltar ao Menu</a>
+        </div>
+        <p class="hint-note">Use o botão de dica apenas uma vez por rodada.</p>
+        <p id="message" class="message"></p>
+        <audio id="background-music" loop preload="metadata">
+            <source src="../Vivaldi The Summer Presto  Violin Sheet Music  Piano Accompaniment - fragherrnmaurer.mp3" type="audio/mpeg">
+        </audio>
+    </div>
+
+    <script src="../score-counter.js"></script>
+    <script src="../java/script.js"></script>
+</body>
+</html>
+

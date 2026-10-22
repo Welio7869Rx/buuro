@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Charadas do Sócrates</title>
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --secondary: #ec4899;
+            --success: #10b981;
+            --danger: #ef4444;
+            --dark: #1e293b;
+            --light: #f8fafc;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: var(--dark);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        .game-card {
+            background: white;
+            padding: 2.5rem;
+            border-radius: 24px;
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2);
+            width: 100%;
+            max-width: 450px;
+            text-align: center;
+            position: relative;
+        }
+
+        .stats-bar {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+
+        .timer-badge {
+            background: var(--dark);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+        }
+
+        .score-badge {
+            color: var(--primary);
+        }
+
+        h1 { font-size: 1.8rem; margin-bottom: 0.75rem; color: var(--dark); }
+
+        .quote-container {
+            background: #f3f4ff;
+            color: #3730a3;
+            padding: 1rem 1.2rem;
+            margin-bottom: 1rem;
+            border-radius: 16px;
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            font-style: italic;
+            min-height: 58px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        .question-container {
+            background: var(--light);
+            padding: 1.5rem;
+            border-radius: 16px;
+            min-height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            margin-bottom: 1.5rem;
+            border: 2px solid #e2e8f0;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 1rem;
+            box-sizing: border-box;
+            transition: border-color 0.2s;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .audio-control {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin-top: 12px;
+            font-size: 0.95rem;
+            color: #334155;
+        }
+
+        .audio-status {
+            background: #f1f5f9;
+            padding: 8px 12px;
+            border-radius: 999px;
+            border: 1px solid #cbd5e1;
+        }
+
+        button {
+            padding: 12px;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-main { background: var(--primary); color: white; grid-column: span 2; }
+        .btn-hint { background: #fef3c7; color: #92400e; }
+        .btn-next { background: var(--dark); color: white; }
+        .btn-menu {
+            display: block;
+            grid-column: span 2;
+            padding: 12px;
+            border-radius: 12px;
+            background: #334155;
+            color: white;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .answer-options {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px;
+            margin-top: 12px;
+        }
+
+        .answer-option {
+            min-height: 52px;
+            padding: 10px;
+            background: #f1f5f9;
+            color: var(--dark);
+            border: 1px solid #cbd5e1;
+            overflow-wrap: anywhere;
+        }
+
+        .answer-option:hover:not(:disabled) {
+            background: #e2e8f0;
+        }
+
+        .answer-option.correct,
+        .answer-option.correct:hover {
+            background: var(--success);
+            color: white;
+        }
+
+        .answer-option.wrong,
+        .answer-option.wrong:hover {
+            background: var(--danger);
+            color: white;
+        }
+
+        button:hover { opacity: 0.9; transform: translateY(-1px); }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        #feedback {
+            margin-top: 15px;
+            font-weight: 600;
+            min-height: 20px;
+            line-height: 1.4;
+        }
+    </style>
+</head>
+<body>
+
+<div class="game-card">
+    <div class="stats-bar">
+        <span class="score-badge">Pontos: <span id="score">0</span> | Total: <span data-score-total="charadas">0</span></span>
+        <span class="timer-badge" id="timer">15s</span>
+    </div>
+
+    <h1>Charadas do Sócrates</h1>
+
+    <div class="quote-container" id="quote">
+        “Conhece-te a ti mesmo.” — Sócrates
+    </div>
+
+    <div class="question-container" id="question">
+        Clique em começar para jogar!
+    </div>
+
+    <div id="answer-options" class="answer-options" role="group" aria-label="Escolha uma das quatro alternativas"></div>
+    
+    <div id="feedback"></div>
+
+    <div class="controls">
+        <button id="startBtn" class="btn-main" onclick="startGame()">Começar Charadas</button>
+        <button id="hintBtn" class="btn-hint" onclick="getHint()" disabled>Dica</button>
+        <button id="nextBtn" class="btn-next" onclick="nextQuestion()" disabled>Próxima</button>
+        <a class="btn-menu" href="../index.html?menu=1" target="_top">Voltar ao Menu</a>
+    </div>
+    <div class="audio-control">
+        <button id="soundToggleBtn" class="btn-hint" onclick="toggleSound()" disabled>🔊 Mudo</button>
+        <span class="audio-status" id="audioStatus">Trilha desligada</span>
+    </div>
+    <audio id="bgm" src="../sons/charadas-bgm.mp3" loop preload="metadata"></audio>
+</div>
+
+<script src="../score-counter.js"></script>
+<script>
+    const riddles = [
+            { q: "O que cai em pé e corre deitado?", a: "chuva" },
+        {q: "Tem coroa mas não é rei, tem escama mas não é peixe.", a: "abacaxi" },
+        { q: "O que quanto mais se tira, maior fica?", a: "buraco" },
+        { q: "O que tem dentes mas não morde?", a: "pente" },
+        { q: "O que anda com os pés na cabeça?", a: "piolho" },
+        { q: "Sobe quando a chuva desce.", a: "guarda-chuva" },
+        { q: "O que nasce grande e morre pequeno?", a: "lapis" },
+        { q: "O que tem pescoço e não tem cabeça?", a: "garrafa" },
+        { q: "O que se quebra quando se fala o nome?", a: "silencio" },
+        { q: "O que sempre vem, mas nunca chega?", a: "amanha" },
+        { q: "O que é que tem pernas mas não anda?", a: "mesa" },
+        { q: "O que é que tem braços mas não abraça?", a: "poltrona" },
+        { q: "O que é que tem um olho mas não vê?", a: "agulha" },
+        { q: "O que é que quanto mais seca, mais molhada fica?", a: "toalha" },
+        { q: "O que é que corre a casa inteira e depois dorme num canto?", a: "vassoura" },
+        { q: "O que é que tem dentes mas não come; tem barba mas não se barbeia?", a: "milho" },
+        { q: "O que é que passa a vida na janela e, mesmo dentro de casa, está fora dela?", a: "botao" },
+        { q: "O que é que entra na água e não se molha?", a: "sombra" },
+        { q: "O que é que voa sem ter asas e chora sem ter olhos?", a: "nuvem" },
+        { q: "O que é que é surdo e mudo, mas conta tudo?", a: "livro" },
+        { q: "O que é que tem luz, mas vive no escuro?", a: "vaga-lume" },
+        { q: "O que é que corre o campo inteiro e não tem pés?", a: "bola" },
+        { q: "O que é que é do tamanho de uma noz, mas sobe o morro sem pernas?", a: "caracol" },
+        { q: "O que é que fica cheio de dia e vazio de noite?", a: "sapato" },
+        { q: "O que é que é verde e não é planta, fala e não é gente?", a: "papagaio" },
+        { q: "O que é que quanto mais quente ele está, mais fresco é?", a: "pao" },
+        { q: "O que é que vive com o céu na boca?", a: "fogao" },
+        { q: "O que é que atravessa o rio sem se molhar?", a: "ponte" },
+        { q: "O que é que tem bico mas não pica, tem asa mas não voa?", a: "bule" },
+        { q: "O que é que pula para o alto e se veste de branco?", a: "pipoca" },
+        { q: "O que é que tem rabo de gato, orelha de gato e não é gato?", a: "gata" },
+        { q: "O que é que é feito para andar mas não anda?", a: "rua" },
+        { q: "O que é que tem dentes mas não morde?", a: "pente" },
+        { q: "O que é que fura a terra e não é tatu?", a: "enxada" },
+        { q: "O que é que corre mas não tem pés, ruge mas não é leão?", a: "vento" },
+        { q: "O que é que nasce no rio e morre no mar?", a: "peixe" },
+        { q: "O que é que tem um palmo de pescoço e tira o chapéu para todo mundo?", a: "cabide" },
+        { q: "O que é que tem agulhas mas não costura?", a: "pinheiro" },
+        { q: "O que é que só tem um olho mas não vê?", a: "agulha" },
+        { q: "O que é que tem pés mas não caminha, tem costas mas não deita?", a: "cadeira" },
+        { q: "O que é que branco por dentro, verde por fora, é o pai da pipoca?", a: "milho" },
+        { q: "O que é que fala e ouve, mas não tem boca nem ouvidos?", a: "telefone" },
+        { q: "O que é que trabalha deitado e descansa em pé?", a: "roda" },
+        { q: "O que é que dá o brilho no escuro e é o terror do ladrão?", a: "cadeado" },
+        { q: "O que é que entra mudo e sai calado?", a: "pensamento" },
+        { q: "O que é que tem folhas mas não é árvore?", a: "livro" },
+        { q: "O que é que caminha sem pés e voa sem asas?", a: "nuvem" },
+        { q: "O que é que gosta de comer ferro?", a: "ima" },
+        { q: "O que é que tem chaves mas não abre portas?", a: "piano" },
+        { q: "O que é que tem fundo em cima?", a: "navio" },
+        { q: "O que é que passa pelo sol e não faz sombra?", a: "vidro" },
+        { q: "O que é que mata a sede de quem não bebe?", a: "terra" },
+        { q: "O que é que vive caindo e nunca se machuca?", a: "chuva" },
+        { q: "O que é que tem 5 dedos mas não tem carne nem osso?", a: "luva" },
+        { q: "O que é que se alimenta de vento?", a: "moinho" },
+        { q: "O que é que dorme em pé e anda deitado?", a: "rastro" },
+        { q: "O que é que voa para todo lado e não sai do lugar?", a: "bandeira" },
+        { q: "O que é que fica mais alto que o rei?", a: "coroa" },
+        { q: "O que é que tem boca mas não fala?", a: "fogao" },
+        { q: "O que é que o boi não passa, mas o mosquito passa?", a: "teia de aranha" },
+        { q: "O que é que é preto, é branco e é lido por todos?", a: "jornal" },
+        { q: "O que é que sobra na mesa e falta no prato?", a: "palito" },
+        { q: "O que é que quanto mais cresce, mais baixo fica?", a: "rabo do cavalo" },
+        { q: "O que é que faz todo mundo chorar sem ser triste?", a: "cebola" },
+        { q: "O que é que fica molhado enquanto seca?", a: "suor" },
+        { q: "O que é que é seu mas as outras pessoas usam mais que você?", a: "seu nome" },
+        { q: "O que é que tem cabeça, mas não pensa?", a: "prego" },
+        { q: "O que é que tem um buraco no meio e serve para prender?", a: "anel" },
+        { q: "O que é que tem asa mas não voa, tem bico mas não come?", a: "xicara" },
+        { q: "O que é que o detetive faz quando chega na cozinha?", a: "investigao" },
+        { q: "O que é que tem pele mas não é bicho, tem caroço mas não é fruta?", a: "espinha" },
+        { q: "O que é que entra na igreja de cabeça para baixo?", a: "prego no sapato" },
+        { q: "O que é que uma casa com dois buraquinhos, se cheira ruim, fecha a portinha?", a: "nariz" },
+        { q: "O que é que anda para trás e para frente, mas nunca sai do lugar?", a: "balanco" },
+        { q: "O que é que faz o turno sem sair do lugar?", a: "vigia" },
+        { q: "O que é que nasce no mato, morre na água?", a: "sal" },
+        { q: "O que é que anda sobre a água e não se molha?", a: "oleo" },
+        { q: "O que é que quanto mais você limpa, mais sujo ele fica?", a: "pano de chao" },
+        { q: "O que é que tem dentes mas nunca comeu nada?", a: "serrote" },
+        { q: "O que é que anda com a casa nas costas?", a: "caracol" },
+        { q: "O que é que voa sem ter asas e corre sem ter pés?", a: "tempo" },
+        { q: "O que é que corre em volta do pasto sem se mexer?", a: "cerca" },
+        { q: "O que é que tem muitas chaves mas não abre nenhuma porta?", a: "dicionario" },
+        { q: "O que é que tem cidade mas não tem casas?", a: "mapa" },
+        { q: "O que é que entra no buraco e deixa o rabo de fora?", a: "chave" },
+        { q: "Qual é o céu que não tem estrelas?", a: "ceu da boca" },
+        { q: "O que é que cai no chão e não quebra, mas cai na água e quebra?", a: "papel" },
+        { q: "O que é que tem boca e não fala, tem botão e não é camisa?", a: "radio" },
+        { q: "O que é que tem folha mas não é planta, tem capa mas não é super-homem?", a: "livro" },
+        { q: "O que é que tem costas mas não tem peito, tem braços mas não tem mãos?", a: "cadeira" },
+        { q: "O que é que voa mas não tem asas, tem bico mas não é pássaro?", a: "aviao" },
+        { q: "O que é que tem coroa mas não é rei, tem espinho mas não é rosa?", a: "abacaxi" },
+        { q: "O que é que o mar disse para a areia?", a: "deixa de onda" },
+        { q: "O que é que o zero disse para o oito?", a: "belo cinto" },
+        { q: "O que é que corre mas não tem pernas, para mas não tem pés?", a: "carro" },
+        { q: "O que é que é redondo e não é bola, é de vidro e não é copo?", a: "lampada" },
+        { q: "O que é que tem luz mas vive na sombra?", a: "vaga-lume" },
+        { q: "O que é que é branco, mora no frio e gosta de comer peixe?", a: "urso polar" },
+        { q: "O que é que o livro de matemática disse para o de história?", a: "estou cheio de problemas" },
+        { q: "O que é que tem rabo mas não é animal, tem asas mas não voa?", a: "aviao de papel" },
+        // ... (Continuando a lista até 500)
+        { q: "O que é que dá um pulo e se veste de noiva?", a: "pipoca" },
+        { q: "O que é que tem pescoço e não tem cabeça?", a: "garrafa" },
+        { q: "O que é que tem bico mas não belisca?", a: "bule" },
+        { q: "O que é que atravessa a rua sem se mexer?", a: "faixa de pedestre" },
+        { q: "O que é que tem quatro olhos mas não pode ver?", a: "mississippi" },
+        { q: "O que é que sobe a colina mas nunca se move?", a: "estrada" },
+        { q: "O que é que fica no final de um arco-íris?", a: "letra s" },
+        { q: "O que é que tem um coração que não bate?", a: "alcachofra" },
+        { q: "O que é que tem pele mas não sente, tem carne mas não vive?", a: "fruta" },
+        { q: "O que é que pode ser quebrado mas nunca segurado?", a: "promessa" },
+        { q: "O que é que tem mãos mas não pode aplaudir?", a: "relogio" },
+        { q: "O que é que corre mas nunca caminha?", a: "rio" },
+        { q: "O que é que viaja pelo mundo ficando em um canto?", a: "selo" },
+        { q: "O que é que tem um polegar e quatro dedos mas não tem vida?", a: "luva" },
+        { q: "O que é que pode ser pego mas não jogado?", a: "resfriado" },
+        { q: "O que é que tem muitos dentes mas nunca morde?", a: "pente" },
+        { q: "O que é que se torna mais curto conforme envelhece?", a: "vela" },
+        { q: "O que é que tem uma perna mas não pode andar?", a: "cogumelo" },
+        { q: "O que é que tem muitas chaves mas não abre portas?", a: "piano" },
+        { q: "O que é que fica mais úmido quanto mais chove?", a: "mar" },
+        { q: "O que é que tem uma cabeça e uma cauda mas nenhum corpo?", a: "moeda" },
+        { q: "O que é que você pode segurar na mão esquerda mas nunca na direita?", a: "cotovelo direito" },
+        { q: "O que é que é preto quando é limpo e branco quando é sujo?", a: "quadro negro" },
+        { q: "O que é que pertence a você mas os outros usam mais?", a: "nome" },{ q: "O que é que sobe mas nunca desce?", a: "idade" },{ q: "O que é que tem um buraco mas ainda assim segura água?", a: "esponja" },{ q: "O que é que tem 13 corações mas nenhum órgão?", a: "baralho" },{ q: "O que é que você pode quebrar sem nunca tocar?", a: "silencio" },{ q: "O que é que tem um leito mas nunca dorme?", a: "rio" },{ q: "O que é que tem um rosto mas não tem olhos?", a: "relogio" },{ q: "O que é que você pode dar mas ainda manter?", a: "palavra" },{ q: "O que é que tem muitos furos mas ainda segura água?", a: "esponja" },{ q: "O que é que tem uma boca mas nunca fala?", a: "rio" },{ q: "O que é que tem um pescoço mas não tem cabeça?", a: "camisa" },{ q: "O que é que quanto mais você tem, menos você vê?", a: "escuridao" },{ q: "O que é que tem uma espinha mas nenhum osso?", a: "livro" },{ q: "O que é que tem 88 teclas mas não abre nada?", a: "piano" },{ q: "O que é que pode correr mas não tem pernas?", a: "nariz" },{ q: "O que é que tem dentes mas não pode mastigar?", a: "serrote" },{ q: "O que é que tem um pé em cada lado e um no meio?", a: "jarda" },{ q: "O que é que tem mãos mas não pode pegar nada?", a: "relogio" },{ q: "O que é que tem uma língua mas não pode falar?", a: "sapato" },{ q: "O que é que tem um fundo no topo?", a: "pernas" },{ q: "O que é que quanto mais você tira, mais cresce?", a: "buraco" },{ q: "O que é que tem muitos olhos mas não pode ver?", a: "batata" },{ q: "O que é que você pode perder mas nunca encontrar?", a: "tempo" },{ q: "O que é que tem cidades mas não casas?", a: "mapa" },{ q: "O que é que tem montanhas mas não árvores?", a: "mapa" },{ q: "O que é que tem água mas não peixes?", a: "mapa" },{ q: "O que é que fica mais alto quando você remove o topo?", a: "travesseiro" },{ q: "O que é que tem uma casca mas não morde?", a: "ovo" },{ q: "O que é que tem uma perna mas não tem corpo?", a: "mesa" },{ q: "O que é que tem um braço mas não tem corpo?", a: "cadeira" },{ q: "O que é que você pode quebrar mas não consertar?", a: "promessa" },{ q: "O que é que tem muitos dentes mas não morde?", a: "ziper" },{ q: "O que é que tem uma cabeça mas não tem cabelo?", a: "alfinete" },{ q: "O que é que tem uma cauda mas não tem corpo?", a: "cometa" },{ q: "O que é que tem uma boca mas não morde?", a: "garrafa" },{ q: "O que é que tem um olho mas não pisca?", a: "furacao" },{ q: "O que é que tem pernas mas não caminha?", a: "calca" },{ q: "O que é que tem um pescoço mas não tem ombros?", a: "garrafa" },{ q: "O que é que tem uma alma mas não tem vida?", a: "sapato" },{ q: "O que é que tem uma coroa mas não tem cabeça?", a: "dente" },{ q: "O que é que tem uma raiz mas não tem planta?", a: "dente" },{ q: "O que é que tem uma asa mas não voa?", a: "xicara" },{ q: "O que é que tem um bico mas não voa?", a: "bule" },{ q: "O que é que tem uma face mas não tem cabeça?", a: "relogio" },{ q: "O que é que tem mãos mas não tem braços?", a: "relogio" },{ q: "O que é que tem um leito mas não tem sono?", a: "rio" },{ q: "O que é que tem uma língua mas não tem boca?", a: "tenis" },{ q: "O que é que tem uma cabeça mas não tem cérebro?", a: "repolho" },{ q: "O que é que tem uma orelha mas não ouve?", a: "milho" },{ q: "O que é que tem um coração mas não tem vida?", a: "baralho" },{ q: "O que é que tem uma pele mas não tem carne?", a: "fruta" },{ q: "O que é que tem uma folha mas não tem árvore?", a: "livro" },{ q: "O que é que tem uma capa mas não tem frio?", a: "livro" },{ q: "O que é que tem uma lombada mas não tem costas?", a: "livro" },{ q: "O que é que tem um dente mas não morde?", a: "alho" },{ q: "O que é que tem uma cabeça mas não pensa?", a: "martelo" },{ q: "O que é que tem uma perna mas não corre?", a: "mesa" },{ q: "O que é que tem um braço mas não segura?", a: "poltrona" },{ q: "O que é que tem uma face mas não fala?", a: "moeda" },{ q: "O que é que tem um corpo mas não tem vida?", a: "carro" },{ q: "O que é que tem um motor mas não corre?", a: "geladeira" },{ q: "O que é que tem um pé mas não tem dedos?", a: "montanha" },{ q: "O que é que tem uma crista mas não é galo?", a: "onda" },{ q: "O que é que tem uma cauda mas não é bicho?", a: "piano" },{ q: "O que é que tem uma corda mas não amarra?", a: "violao" },{ q: "O que é que tem um arco mas não atira?", a: "arco-iris" },{ q: "O que é que tem uma ponte mas não atravessa?", a: "nariz" },{ q: "O que é que tem um campo mas não tem grama?", a: "futebol" },{ q: "O que é que tem uma rede mas não pega peixe?", a: "volei" },{ q: "O que é que tem uma cesta mas não guarda comida?", a: "basquete" },{ q: "O que é que tem um taco mas não morde?", a: "golfe" },{ q: "O que é que tem uma raquete mas não faz barulho?", a: "tenis" },{ q: "O que é que tem uma bola mas não chuta?", a: "boliche" },{ q: "O que é que tem um pino mas não costura?", a: "boliche" },{ q: "O que é que tem uma pista mas não tem carro?", a: "atletismo" },{ q: "O que é que tem uma vara mas não pesca?", a: "salto" },{ q: "O que é que tem um disco mas não toca música?", a: "hoquei" },{ q: "O que é que tem uma luva mas não tem frio?", a: "boxe" },{ q: "O que é que tem um ringue mas não é joia?", a: "boxe" },{ q: "O que é que tem um quimono mas não é japonês?", a: "judo" },{ q: "O que é que tem uma faixa mas não é estrada?", a: "carate" },{ q: "O que é que tem um pedal mas não é piano?", a: "bicicleta" },{ q: "O que é que tem uma corrente mas não prende?", a: "bicicleta" },{ q: "O que é que tem um selim mas não é cavalo?", a: "bicicleta" },{ q: "O que é que tem um guidão mas não é volante?", a: "bicicleta" },{ q: "O que é que tem um raio mas não troveja?", a: "roda" },{ q: "O que é que tem uma pneu mas não cansa?", a: "carro" },{ q: "O que é que tem um freio mas não para sozinho?", a: "carro" },{ q: "O que é que tem um farol mas não fica no mar?", a: "carro" },{ q: "O que é que tem um porta-malas mas não viaja?", a: "carro" },{ q: "O que é que tem um capô mas não é chapeu?", a: "carro" },{ q: "O que é que tem um retrovisor mas não se vê?", a: "carro" },{ q: "O que é que tem um limpador mas não lava?", a: "carro" },{ q: "O que é que tem um painel mas não pinta?", a: "carro" },{ q: "O que é que tem um câmbio mas não troca dinheiro?", a: "carro" },{ q: "O que é que tem uma embreagem mas não segura?", a: "carro" },{ q: "O que é que tem um acelerador mas não corre?", a: "carro" },{ q: "O que é que tem um escapamento mas não foge?", a: "carro" },{ q: "O que é que tem uma bateria mas não toca?", a: "carro" },{ q: "O que é que tem um radiador mas não esquenta?", a: "carro" },{ q: "O que é que tem uma vela mas não acende?", a: "carro" },{ q: "O que é que tem um pistão mas não é arma?", a: "motor" },{ q: "O que é que tem uma biela mas não é moça?", a: "motor" },{ q: "O que é que tem um virabrequim mas não vira?", a: "motor" },{ q: "O que é que tem uma válvula mas não é coração?", a: "motor" },{ q: "O que é que tem um filtro mas não fuma?", a: "carro" },{ q: "O que é que tem um óleo mas não frita?", a: "carro" },{ q: "O que é que tem uma graxa mas não é sujo?", a: "carro" },{ q: "O que é que tem um macaco mas não é bicho?", a: "ferramenta" },{ q: "O que é que tem uma chave mas não abre casa?", a: "ferramenta" },{ q: "O que é que tem um martelo mas não tem mão?", a: "ferramenta" },{ q: "O que é que tem um prego mas não tem dedo?", a: "ferramenta" },{ q: "O que é que tem um parafuso mas não tem rosca?", a: "ferramenta" },{ q: "O que é que tem uma porca mas não é bicho?", a: "ferramenta" },{ q: "O que é que tem uma arruela mas não é redondo?", a: "ferramenta" },{ q: "O que é que tem uma trena mas não é metro?", a: "ferramenta" },{ q: "O que é que tem um nível mas não é andar?", a: "ferramenta" },{ q: "O que é que tem um prumo mas não é reto?", a: "ferramenta" },{ q: "O que é que tem um esquadro mas não é quadrado?", a: "ferramenta" },{ q: "O que é que tem uma lima mas não é fruta?", a: "ferramenta" },{ q: "O que é que tem um arco mas não é flecha?", a: "serra" },{ q: "O que é que tem um dente mas não morde?", a: "serrote" },{ q: "O que é que tem uma lâmina mas não faz barba?", a: "faca" },{ q: "O que é que tem um cabo mas não é tv?", a: "faca" },{ q: "O que é que tem uma ponta mas não escreve?", a: "faca" },{ q: "O que é que tem um corte mas não sangra?", a: "faca" },{ q: "O que é que tem um fio mas não é telefone?", a: "faca" },{ q: "O que é que tem um brilho mas não é ouro?", a: "faca" },{ q: "O que é que tem um aço mas não é ponte?", a: "faca" },{ q: "O que é que tem um garfo mas não come?", a: "talher" },{ q: "O que é que tem uma colher mas não bebe?", a: "talher" },{ q: "O que é que tem um prato mas não é banda?", a: "louca" },{ q: "O que é que tem um copo mas não é olho?", a: "louca" },{ q: "O que é que tem uma xícara mas não é café?", a: "louca" },{ q: "O que é que tem um pires mas não é voa?", a: "louca" },{ q: "O que é que tem um bule mas não é chá?", a: "louca" },{ q: "O que é que tem uma panela mas não é sopa?", a: "louca" },{ q: "O que é que tem uma tampa mas não é garrafa?", a: "panela" },{ q: "O que é que tem uma alça mas não é bolsa?", a: "panela" },{ q: "O que é que tem um fundo mas não é mar?", a: "panela" },{ q: "O que é que tem um fogo mas não queima?", a: "fogao" },{ q: "O que é que tem um forno mas não é padaria?", a: "fogao" },{ q: "O que é que tem uma boca mas não come?", a: "fogao" },{ q: "O que é que tem uma grelha mas não é churrasco?", a: "fogao" },{ q: "O que é que tem um acendedor mas não fuma?", a: "fogao" },{ q: "O que é que tem um gás mas não cheira?", a: "fogao" },{ q: "O que é que tem um botão mas não é camisa?", a: "fogao" },{ q: "O que é que tem uma luz mas não ilumina?", a: "forno" },{ q: "O que é que tem um vidro mas não se vê?", a:"forno" },{ q: "O que é que tem uma grade mas não é preso?", a: "forno" },{ q: "O que é que tem um calor mas não é sol?", a: "forno" },{ q: "O que é que tem um tempo mas não é relógio?", a: "forno" },{ q: "O que é que tem um som mas não é música?", a: "forno" },{ q: "O que é que tem uma porta mas não entra?", a: "forno" },{ q: "O que é que tem um puxador mas não empurra?", a: "forno" },{ q: "O que é que tem uma geladeira mas não gela?", a: "moveis" },{ q: "O que é que tem um freezer mas não congela?", a: "moveis" },{ q: "O que é que tem uma prateleira mas não tem livro?", a: "geladeira" },{ q: "O que é que tem uma gaveta mas não tem roupa?", a: "geladeira" },{ q: "O que é que tem uma lâmpada mas não apaga?", a: "geladeira" },{ q: "O que é que tem uma borracha mas não apaga?", a: "geladeira" },{ q: "O que é que tem um motor mas não anda?", a: "geladeira" },{ q: "O que é que tem um filtro mas não coa?", a: "geladeira" },{ q: "O que é que tem um gelo mas não derrete?", a: "geladeira" },{ q: "O que é que tem uma água mas não bebe?", a: "geladeira" },{ q: "O que é que tem uma pia mas não pia?", a: "cozinha" },{ q: "O que é que tem uma torneira mas não é bicho?", a: "cozinha" },{ q: "O que é que tem um ralo mas não é cabelo?", a: "cozinha" },{ q: "O que é que tem um balcão mas não é loja?", a: "cozinha" },{ q: "O que é que tem um armário mas não é quarto?", a: "cozinha" },{ q: "O que é que tem uma dispensa mas não vai embora?", a: "cozinha" },{ q: "O que é que tem uma mesa mas não tem cadeira?", a: "cozinha" },{ q: "O que é que tem um banco mas não tem dinheiro?", a: "cozinha" },{ q: "O que é que tem um tapete mas não voa?", a: "cozinha" },{ q: "O que é que tem um pano mas não é roupa?", a: "cozinha" },{ q: "O que é que tem um sabão mas não se lava?", a: "cozinha" },{ q: "O que é que tem uma esponja mas não é mar?", a: "cozinha" },{ q: "O que é que tem um detergente mas não é gente?", a: "cozinha" },{ q: "O que é que tem uma lixeira mas não é lixo?", a: "cozinha" },{ q: "O que é que tem um saco mas não é papai noel?", a: "lixeira" },{ q: "O que é que tem uma tampa mas não é pote?", a: "lixeira" },{ q: "O que é que tem um pedal mas não é bike?", a: "lixeira" },
+         
+    ];
+
+    let currentRiddle = null;
+    let previousRiddle = null;
+    let score = 0;
+    let timeLeft = 15;
+    let timerInterval = null;
+    let remainingRiddles = [];
+
+    const questionEl = document.getElementById('question');
+    const quoteEl = document.getElementById('quote');
+    const answerOptionsEl = document.getElementById('answer-options');
+    const scoreEl = document.getElementById('score');
+    const timerEl = document.getElementById('timer');
+    const feedbackEl = document.getElementById('feedback');
+    const bgmEl = document.getElementById('bgm');
+    const soundToggleBtn = document.getElementById('soundToggleBtn');
+    const audioStatus = document.getElementById('audioStatus');
+
+    function shuffleArray(array) {
+        const copy = array.slice();
+        for (let i = copy.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [copy[i], copy[j]] = [copy[j], copy[i]];
+        }
+        return copy;
+    }
+
+    function refillRiddles() {
+        remainingRiddles = shuffleArray(riddles);
+    }
+
+    const quotes = [
+        "Conhece-te a ti mesmo.",
+        "Só sei que nada sei.",
+        "A vida não examinada não vale a pena ser vivida.",
+        "O verdadeiro conhecimento vem da reflexão.",
+        "A educação é acender uma chama, não encher um vaso.",
+        "O maior desafio é conhecer a si mesmo.",
+        "A alegria nasce da virtude.",
+        "A sabedoria começa na admiração.",
+        "A medida do amor é amar sem medida.",
+        "Seja lento para falar e rápido para agir."
+    ];
+
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    let quoteRotationTimer = null;
+
+    function activateAudio() {
+        if (!audioContext) return Promise.resolve(false);
+        if (audioContext.state === 'running') return Promise.resolve(true);
+        return audioContext.resume().then(() => true).catch(() => false);
+    }
+
+    document.body.addEventListener('click', () => activateAudio(), { once: true });
+
+    function playTone(frequency, duration, type = 'sine', volume = 0.08) {
+        if (!audioContext) return;
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+
+        oscillator.type = type;
+        oscillator.frequency.value = frequency;
+        gainNode.gain.setValueAtTime(volume, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.0001, audioContext.currentTime + duration / 1000);
+
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + duration / 1000);
+    }
+
+    function playCorrectSound() {
+        activateAudio().then((ok) => {
+            if (!ok) return;
+            playTone(880, 120, 'triangle', 0.15);
+            setTimeout(() => playTone(1047, 130, 'triangle', 0.12), 140);
+            setTimeout(() => playTone(1319, 90, 'triangle', 0.1), 280);
+        });
+    }
+
+    function playWrongSound() {
+        activateAudio().then((ok) => {
+            if (!ok) return;
+            playTone(220, 180, 'sawtooth', 0.18);
+            setTimeout(() => playTone(165, 180, 'sawtooth', 0.14), 220);
+        });
+    }
+
+    function startBackgroundMusic() {
+        activateAudio().then((ok) => {
+            if (!ok || !bgmEl) return;
+            bgmEl.volume = 0.22;
+            bgmEl.muted = false;
+            bgmEl.play().catch(() => {
+                // Autoplay pode ser bloqueado, mas o usuário já interagiu com o botão de início.
+            });
+            updateSoundButton();
+        });
+    }
+
+    function stopBackgroundMusic() {
+        if (bgmEl && !bgmEl.paused) {
+            bgmEl.pause();
+        }
+    }
+
+    function toggleSound() {
+        if (!bgmEl) return;
+        if (bgmEl.paused) {
+            startBackgroundMusic();
+            audioStatus.innerText = 'Trilha ligada';
+        } else {
+            bgmEl.pause();
+            audioStatus.innerText = 'Trilha pausada';
+        }
+        updateSoundButton();
+    }
+
+    function updateSoundButton() {
+        if (!bgmEl) return;
+        soundToggleBtn.innerText = bgmEl.paused ? '🔇 Ligar' : '🔊 Desligar';
+        audioStatus.innerText = bgmEl.paused ? 'Trilha pausada' : 'Trilha ligada';
+    }
+
+    function rotateQuotes() {
+        clearInterval(quoteRotationTimer);
+        quoteRotationTimer = setInterval(updateQuote, 9000);
+    }
+
+    function updateQuote() {
+        const quote = quotes[Math.floor(Math.random() * quotes.length)];
+        quoteEl.innerText = `"${quote}" — Sócrates`;
+    }
+
+    function startTimer() {
+        clearInterval(timerInterval);
+        timeLeft = 15;
+        timerEl.innerText = timeLeft + "s";
+        timerEl.style.background = "var(--dark)";
+
+        timerInterval = setInterval(() => {
+            timeLeft--;
+            timerEl.innerText = timeLeft + "s";
+            if (timeLeft <= 5) timerEl.style.background = "var(--danger)";
+            if (timeLeft <= 0) {
+                clearInterval(timerInterval);
+                gameOver("Tempo esgotado!");
+            }
+        }, 1000);
+    }
+
+    function startGame() {
+        score = 0;
+        scoreEl.innerText = score;
+        document.getElementById('startBtn').style.display = 'none';
+        document.getElementById('hintBtn').disabled = false;
+        document.getElementById('nextBtn').disabled = false;
+        soundToggleBtn.disabled = false;
+        updateSoundButton();
+        updateQuote();
+        rotateQuotes();
+        refillRiddles();
+        startBackgroundMusic();
+        nextQuestion();
+    }
+
+    function nextQuestion() {
+        if (remainingRiddles.length === 0) {
+            refillRiddles();
+        }
+
+        answerOptionsEl.innerHTML = '';
+        feedbackEl.innerText = "";
+        feedbackEl.style.color = "var(--dark)";
+
+        updateQuote();
+        let nextRiddle = remainingRiddles.pop();
+        while (previousRiddle && nextRiddle && nextRiddle.q === previousRiddle.q && remainingRiddles.length > 0) {
+            const tempRiddle = nextRiddle;
+            nextRiddle = remainingRiddles.pop();
+            remainingRiddles.unshift(tempRiddle);
+        }
+
+        currentRiddle = nextRiddle || remainingRiddles.pop();
+        previousRiddle = currentRiddle;
+        questionEl.innerText = currentRiddle.q;
+        createAnswerOptions();
+        startTimer();
+    }
+
+    function normalizeAnswer(answer) {
+        return answer.toLowerCase().trim()
+            .normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    }
+
+    function createAnswerOptions() {
+        const correctAnswer = currentRiddle.a;
+        const correctValue = normalizeAnswer(correctAnswer);
+        const answersByValue = new Map();
+        riddles.forEach(({ a }) => answersByValue.set(normalizeAnswer(a), a));
+        const distractors = [...answersByValue.entries()]
+            .filter(([answer]) => answer !== correctValue)
+            .map(([, answer]) => answer);
+        const options = shuffleArray([
+            correctAnswer,
+            ...shuffleArray(distractors).slice(0, 3)
+        ]);
+
+        options.forEach((answer) => {
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'answer-option';
+            button.textContent = answer;
+            button.addEventListener('click', () => checkAnswer(answer, button));
+            answerOptionsEl.appendChild(button);
+        });
+    }
+
+    function checkAnswer(selectedAnswer, selectedButton) {
+        if (!currentRiddle || selectedButton.disabled) return;
+        const optionButtons = [...answerOptionsEl.querySelectorAll('button')];
+        optionButtons.forEach((button) => { button.disabled = true; });
+
+        if (normalizeAnswer(selectedAnswer) === normalizeAnswer(currentRiddle.a)) {
+            selectedButton.classList.add('correct');
+            const earnedPoints = 10 + timeLeft;
+            score += earnedPoints;
+            GameScoreCounter.add('charadas', earnedPoints);
+            scoreEl.innerText = score;
+            feedbackEl.innerText = "✨ Correto! + " + earnedPoints + " pts";
+            feedbackEl.style.color = "var(--success)";
+            clearInterval(timerInterval);
+            playCorrectSound();
+            setTimeout(nextQuestion, 1500);
+        } else {
+            selectedButton.classList.add('wrong');
+            const correctButton = optionButtons.find((button) => normalizeAnswer(button.textContent) === normalizeAnswer(currentRiddle.a));
+            if (correctButton) correctButton.classList.add('correct');
+            gameOver('Resposta incorreta!');
+        }
+    }
+
+    function gameOver(msg) {
+        answerOptionsEl.querySelectorAll('button').forEach((button) => { button.disabled = true; });
+        feedbackEl.innerText = msg + " A resposta era: " + currentRiddle.a;
+        feedbackEl.style.color = "var(--danger)";
+        playWrongSound();
+        setTimeout(nextQuestion, 3000);
+    }
+
+    function getHint() {
+        feedbackEl.innerText = `Dica: Começa com "${currentRiddle.a[0].toUpperCase()}"`;
+        feedbackEl.style.color = "#92400e";
+        score = Math.max(0, score - 5);
+        scoreEl.innerText = score;
+    }
+
+    if (soundToggleBtn) {
+        soundToggleBtn.disabled = true;
+    }
+</script>
+
+</body>
+</html>
+

@@ -1,0 +1,202 @@
+/* Estilização Geral */
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #121214;
+    color: #ffffff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    margin: 0;
+    overflow: hidden;
+}
+
+h1 {
+    color: #00adb5;
+    margin-bottom: 5px;
+}
+
+/* Modo de Jogo Dropdown */
+.modo-container {
+    margin-bottom: 15px;
+    font-size: 1rem;
+}
+
+.modo-container select {
+    background-color: #222831;
+    color: white;
+    border: 1px solid #393e46;
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-weight: bold;
+    cursor: pointer;
+    outline: none;
+}
+
+/* Painel de Placar */
+.placar {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 20px;
+    margin-bottom: 15px;
+    background-color: #222831;
+    padding: 10px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.pontos-bloco {
+    font-size: 1.1rem;
+    font-weight: bold;
+}
+.pontos-bloco.X { color: #00adb5; }
+.pontos-bloco.O { color: #ff5722; }
+.pontos-bloco.empates { color: #eeeeee; }
+.pontos-bloco.total { color: #f5c542; }
+
+.status {
+    font-size: 1.2rem;
+    margin-bottom: 20px;
+    font-weight: bold;
+}
+
+/* O Tabuleiro */
+.tabuleiro {
+    display: grid;
+    grid-template-columns: repeat(3, 100px);
+    grid-template-rows: repeat(3, 100px);
+    gap: 10px;
+    background-color: #222831;
+    padding: 10px;
+    border-radius: 10px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+}
+
+/* Células / Quadrados */
+.celula {
+    background-color: #393e46;
+    border: none;
+    border-radius: 5px;
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: #ffffff;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.1s;
+}
+
+.celula:hover { background-color: #4b525d; }
+.celula:active { transform: scale(0.9); }
+
+/* Animações e cores de marcadores */
+.celula.X, .celula.O {
+    animation: aparecerCaractere 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+.celula.X { color: #00adb5; }
+.celula.O { color: #ff5722; }
+
+/* Animações de fim de jogo */
+.animar-vitoria { animation: pulsoVitoria 0.6s infinite alternate; }
+.animar-empate { animation: tremerEmpate 0.4s ease-in-out; }
+
+/* Botões */
+.botoes-container {
+    margin-top: 20px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+}
+
+.btn {
+    padding: 10px 15px;
+    font-size: 0.95rem;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background 0.2s;
+}
+
+.btn-menu {
+    background-color: #393e46;
+    color: #eeeeee;
+    text-decoration: none;
+}
+
+.btn-menu:hover { background-color: #4b525d; }
+
+.btn-reiniciar { background-color: #00adb5; color: white; }
+.btn-reiniciar:hover { background-color: #008c95; }
+
+.btn-musica { background-color: #236b5a; color: white; }
+.btn-musica:hover { background-color: #1b5547; }
+
+.btn-reset-placar { background-color: #ba3c13; color: white; }
+.btn-reset-placar:hover { background-color: #962f0e; }
+
+.btn-tutorial {
+    background-color: #393e46;
+    color: #eeeeee;
+    border: 1px solid #4b525d;
+}
+.btn-tutorial:hover { background-color: #4b525d; }
+
+/* Janela do Tutorial (Modal) */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+    z-index: 10;
+}
+
+.modal-overlay.ativo { opacity: 1; pointer-events: auto; }
+
+.modal {
+    background-color: #222831;
+    padding: 25px;
+    border-radius: 10px;
+    max-width: 400px;
+    width: 90%;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+    border: 1px solid #393e46;
+}
+
+.modal h2 { color: #00adb5; margin-top: 0; }
+.modal ul { padding-left: 20px; line-height: 1.6; }
+.modal li { margin-bottom: 10px; }
+
+.btn-fechar {
+    margin-top: 15px;
+    width: 100%;
+    background-color: #ff5722;
+    color: white;
+}
+.btn-fechar:hover { background-color: #e04e1b; }
+
+/* Animações Keyframes */
+@keyframes aparecerCaractere {
+    from { transform: scale(0); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+@keyframes pulsoVitoria {
+    from { transform: scale(1); filter: brightness(1); }
+    to { transform: scale(1.05); filter: brightness(1.3); }
+}
+
+@keyframes tremerEmpate {
+    0%, 100% { transform: translateX(0); }
+    20%, 60% { transform: translateX(-6px); }
+    40%, 80% { transform: translateX(6px); }
+}

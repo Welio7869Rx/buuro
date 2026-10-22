@@ -1,0 +1,1460 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎮 Jogo da Forca Completo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            width: 100%;
+        }
+
+        .game-wrapper {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            align-items: start;
+        }
+
+        .start-screen {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: rgba(6, 12, 40, 0.96);
+            z-index: 999;
+            padding: 25px;
+            transition: opacity 0.4s ease, transform 0.4s ease;
+        }
+
+        .start-screen.hide {
+            opacity: 0;
+            transform: scale(0.98);
+            pointer-events: none;
+        }
+
+        .start-card {
+            width: 100%;
+            max-width: 520px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            border-radius: 24px;
+            padding: 35px;
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.5);
+            text-align: center;
+            backdrop-filter: blur(8px);
+        }
+
+        .start-title {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            letter-spacing: 1px;
+        }
+
+        .start-description {
+            font-size: 1rem;
+            opacity: 0.8;
+            line-height: 1.7;
+            margin-bottom: 25px;
+        }
+
+        .start-music {
+            margin-top: 18px;
+            font-size: 0.95rem;
+            color: #dfe6e9;
+            opacity: 0.9;
+        }
+
+        .start-card .btn-primary {
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .game-container {
+            background: rgba(52, 73, 94, 0.95);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+            animation: slideIn 0.5s ease-out;
+        }
+
+        .npc-container {
+            background: rgba(41, 50, 65, 0.95);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+            animation: slideIn 0.5s ease-out 0.1s both;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            text-align: center;
+        }
+
+        .subtitle {
+            text-align: center;
+            font-size: 0.9rem;
+            opacity: 0.8;
+            margin-bottom: 20px;
+        }
+
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            border-left: 4px solid #3498db;
+        }
+
+        .status-item {
+            text-align: center;
+            flex: 1;
+        }
+
+        .status-label {
+            font-size: 0.85rem;
+            opacity: 0.7;
+            text-transform: uppercase;
+        }
+
+        .status-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+
+        .word-display {
+            font-size: 3rem;
+            letter-spacing: 15px;
+            margin: 30px 0;
+            font-family: 'Courier New', monospace;
+            padding: 25px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            border: 2px solid #3498db;
+            min-height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: pulse 0.5s ease-in-out;
+            word-break: break-all;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+
+        .keyboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(35px, 1fr));
+            gap: 8px;
+            margin: 20px 0;
+            max-height: 200px;
+            overflow-y: auto;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+        }
+
+        button {
+            padding: 10px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            border: 2px solid transparent;
+            border-radius: 6px;
+            cursor: pointer;
+            background: #ecf0f1;
+            color: #2c3e50;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+        }
+
+        button:hover:not(:disabled) {
+            background: #bdc3c7;
+            transform: scale(1.1);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        button:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .correct {
+            background: #2ecc71 !important;
+            color: white !important;
+            border-color: #27ae60 !important;
+        }
+
+        .wrong {
+            background: #e74c3c !important;
+            color: white !important;
+            border-color: #c0392b !important;
+            animation: shake 0.3s;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn-primary {
+            flex: 1;
+            background: linear-gradient(135deg, #3498db, #2980b9) !important;
+            color: white !important;
+            padding: 14px !important;
+            font-weight: bold !important;
+            border: none !important;
+            font-size: 1rem !important;
+            border-radius: 8px !important;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: linear-gradient(135deg, #2980b9, #1f618d) !important;
+            transform: translateY(-2px) !important;
+            box-shadow: 0 10px 25px rgba(52, 152, 219, 0.4) !important;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #9b59b6, #8e44ad) !important;
+            color: white !important;
+            padding: 14px !important;
+            font-weight: bold !important;
+            border: none !important;
+            font-size: 1rem !important;
+            border-radius: 8px !important;
+            cursor: pointer;
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background: linear-gradient(135deg, #8e44ad, #7d3c98) !important;
+            transform: translateY(-2px) !important;
+        }
+
+        .message {
+            font-weight: bold;
+            margin-top: 15px;
+            font-size: 1.2rem;
+            min-height: 30px;
+            text-align: center;
+            animation: messageAppear 0.5s ease-out;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+        }
+
+        @keyframes messageAppear {
+            from {
+                opacity: 0;
+                transform: scale(0.8);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        /* NPC Styles */
+        .npc-header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #3498db;
+        }
+
+        .npc-name {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .npc-personality {
+            font-size: 0.85rem;
+            opacity: 0.7;
+            margin-top: 5px;
+        }
+
+        .npc-dialog {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 10px;
+            min-height: 100px;
+            margin-bottom: 15px;
+            border-left: 4px solid #9b59b6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            font-style: italic;
+            animation: dialogAppear 0.5s ease-out;
+        }
+
+        @keyframes dialogAppear {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .npc-avatar {
+            width: 140px;
+            margin: 10px auto 25px;
+            position: relative;
+        }
+
+        .npc-avatar .avatar-head {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: #f5d7c4;
+            margin: 0 auto;
+            position: relative;
+            box-shadow: inset -4px -6px 12px rgba(0,0,0,0.08);
+        }
+
+        .npc-avatar .avatar-hair {
+            position: absolute;
+            top: -6px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 108px;
+            height: 50px;
+            border-radius: 52% 52% 40% 40%;
+            background: #2d3436;
+        }
+
+        .npc-avatar .avatar-eyes {
+            position: absolute;
+            top: 36px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .npc-avatar .eye {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: #2f2f2f;
+            position: relative;
+        }
+
+        .npc-avatar .eye::after {
+            content: "";
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #fff;
+            position: absolute;
+            top: 3px;
+            left: 3px;
+        }
+
+        .npc-avatar .avatar-mouth {
+            position: absolute;
+            bottom: 18px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 38px;
+            height: 10px;
+            border-radius: 0 0 20px 20px;
+            background: #8e44ad;
+        }
+
+        .npc-avatar .avatar-body {
+            width: 100px;
+            height: 80px;
+            margin: -10px auto 0;
+            border-radius: 28px 28px 18px 18px;
+            background: linear-gradient(180deg, #74b9ff 0%, #0984e3 100%);
+            box-shadow: 0 10px 16px rgba(0,0,0,0.12);
+        }
+
+        .npc-avatar.amigavel .avatar-hair { background: #6c5ce7; }
+        .npc-avatar.misterioso .avatar-hair { background: #2d3436; }
+        .npc-avatar.profesional .avatar-hair { background: #0d6efd; }
+        .npc-avatar.guru .avatar-hair { background: #d4ac0d; }
+        .npc-avatar.entusiasta .avatar-hair { background: #d35400; }
+
+        .personality-selector {
+            margin-bottom: 15px;
+        }
+
+        .personality-selector label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+
+        .personality-selector select {
+            width: 100%;
+            padding: 10px;
+            border-radius: 6px;
+            border: 2px solid #3498db;
+            background: #2c3e50;
+            color: white;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+
+        .hints-container {
+            margin-top: 15px;
+        }
+
+        .hints-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+        }
+
+        .hint-btn {
+            width: 100%;
+            background: #f39c12 !important;
+            margin-bottom: 10px !important;
+        }
+
+        .hint-btn:hover:not(:disabled) {
+            background: #e67e22 !important;
+        }
+
+        .erradas {
+            margin-top: 15px;
+            padding: 10px;
+            background: rgba(231, 76, 60, 0.2);
+            border-radius: 8px;
+            border-left: 4px solid #e74c3c;
+        }
+
+        .erradas-label {
+            font-size: 0.85rem;
+            opacity: 0.8;
+            margin-bottom: 5px;
+        }
+
+        .erradas-letters {
+            font-size: 1.1rem;
+            font-family: 'Courier New', monospace;
+            word-break: break-all;
+        }
+
+        @media (max-width: 768px) {
+            .game-wrapper {
+                grid-template-columns: 1fr;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            .word-display {
+                font-size: 2rem;
+                letter-spacing: 10px;
+            }
+
+            .keyboard {
+                grid-template-columns: repeat(auto-fit, minmax(30px, 1fr));
+                gap: 6px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="start-screen" id="start-screen">
+        <div class="start-card">
+            <div class="start-title">🎮 Jogo da Forca</div>
+            <div class="start-description">Escolha sua dificuldade e seu mentor. O Guru estará pronto para te orientar com dicas inteligentes.</div>
+            <button class="btn-primary" id="start-btn">Iniciar Jogo</button>
+            <div class="start-music">Trilha de boas-vindas ativa na tela inicial.</div>
+        </div>
+    </div>
+    <div class="container">
+        <div class="game-wrapper">
+            <!-- Game Panel -->
+            <div class="game-container">
+                <h1>🎮 Jogo da Forca</h1>
+                <p class="subtitle">Adivinhe a palavra!</p>
+
+                <div class="status-bar">
+                    <div class="status-item">
+                        <div class="status-label">Tentativas</div>
+                        <div class="status-value" id="lives">6 ❤️</div>
+                    </div>
+                    <div class="status-item">
+                        <div class="status-label">Acertos</div>
+                        <div class="status-value" id="score">0/0</div>
+                    </div>
+                    <div class="status-item">
+                        <div class="status-label">Dificuldade</div>
+                        <select id="difficulty-select">
+                            <option value="facil">Fácil</option>
+                            <option value="medio">Médio</option>
+                            <option value="dificil">Difícil</option>
+                        </select>
+                    </div>
+                    <div class="status-item">
+                        <div class="status-label">Música</div>
+                        <div class="status-value" id="theme-display">Fácil</div>
+                    </div>
+                </div>
+
+                <div id="word-display" class="word-display">_ _ _ _ _</div>
+
+                <div id="keyboard" class="keyboard"></div>
+
+                <div class="erradas" id="erradas-container" style="display: none;">
+                    <div class="erradas-label">❌ Letras erradas:</div>
+                    <div class="erradas-letters" id="erradas"></div>
+                </div>
+
+                <div class="message" id="message"></div>
+                <div class="message" id="hint-display" style="font-size: 1rem; min-height: 24px; opacity: 0.9;"></div>
+
+                <div class="action-buttons">
+                    <button class="btn-primary" id="reset-btn">🔄 Novo Jogo</button>
+                </div>
+            </div>
+
+            <!-- NPC Panel -->
+            <div class="npc-container">
+                <div class="npc-header">
+                    <div class="npc-name" id="npc-name">Robin</div>
+                    <div class="npc-personality" id="npc-personality">Amigável</div>
+                </div>
+
+                <div class="personality-selector">
+                    <label for="personality-select">Escolha um NPC:</label>
+                    <select id="personality-select">
+                        <option value="amigavel">Robin - Amigável</option>
+                        <option value="misterioso">Shadow - Misterioso</option>
+                        <option value="profesional">CORE - Profissional</option>
+                        <option value="guru">Guru - Mestre das Dicas</option>
+                        <option value="entusiasta">Blaze - Entusiasta</option>
+                    </select>
+                </div>
+
+                <div class="npc-avatar amigavel idle" id="npc-avatar">
+                    <div class="avatar-head">
+                        <div class="avatar-hair"></div>
+                        <div class="avatar-eyes">
+                            <div class="eye"></div>
+                            <div class="eye"></div>
+                        </div>
+                        <div class="avatar-mouth"></div>
+                    </div>
+                    <div class="avatar-body"></div>
+                </div>
+
+                <div class="npc-dialog" id="npc-dialog">
+                    Bem-vindo ao Jogo da Forca! Boa sorte!
+                </div>
+
+                <div class="hints-container">
+                    <div class="hints-title">💡 Dicas Disponíveis: <span id="hints-counter">3/3</span></div>
+                    <button class="btn-secondary hint-btn" id="hint-btn">💡 Solicitar Dica</button>
+                </div>
+
+                <button class="btn-secondary" style="width: 100%; margin-top: 10px;" id="npc-talk">💬 Conversar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================
+        // AUDIO ENGINE
+        // ============================================
+        class AudioEngine {
+            constructor() {
+                this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                this.backgroundInterval = null;
+                this.menuInterval = null;
+            }
+
+            static NOTAS = {
+                C4: 261.63, D4: 293.66, E4: 329.63, F4: 349.23,
+                G4: 391.99, A4: 440.00, B4: 493.88, C5: 523.25
+            };
+
+            tocar(frequencia, duracao) {
+                const oscillator = this.audioContext.createOscillator();
+                const gainNode = this.audioContext.createGain();
+
+                oscillator.connect(gainNode);
+                gainNode.connect(this.audioContext.destination);
+
+                oscillator.frequency.value = frequencia;
+                oscillator.type = 'sine';
+
+                gainNode.gain.setValueAtTime(0.3, this.audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + duracao / 1000);
+
+                oscillator.start(this.audioContext.currentTime);
+                oscillator.stop(this.audioContext.currentTime + duracao / 1000);
+            }
+
+            async tocarSequencia(notas) {
+                for (const [freq, dur] of notas) {
+                    this.tocar(freq, dur);
+                    await new Promise(r => setTimeout(r, dur + 50));
+                }
+            }
+
+            efeitoAcerto() {
+                this.tocarSequencia([
+                    [AudioEngine.NOTAS.E4, 100],
+                    [AudioEngine.NOTAS.G4, 100],
+                    [AudioEngine.NOTAS.C5, 200]
+                ]);
+            }
+
+            efeitoErro() {
+                this.tocarSequencia([
+                    [AudioEngine.NOTAS.G4, 150],
+                    [AudioEngine.NOTAS.D4, 300]
+                ]);
+            }
+
+            efeitoVitoria() {
+                this.tocarSequencia([
+                    [AudioEngine.NOTAS.C4, 150],
+                    [AudioEngine.NOTAS.E4, 150],
+                    [AudioEngine.NOTAS.G4, 150],
+                    [AudioEngine.NOTAS.C5, 400]
+                ]);
+            }
+
+            efeitoDerrota() {
+                this.tocarSequencia([
+                    [AudioEngine.NOTAS.F4, 300],
+                    [AudioEngine.NOTAS.E4, 300],
+                    [AudioEngine.NOTAS.D4, 300],
+                    [AudioEngine.NOTAS.C4, 600]
+                ]);
+            }
+
+            stopBackground() {
+                if (this.backgroundInterval) {
+                    clearInterval(this.backgroundInterval);
+                    this.backgroundInterval = null;
+                }
+            }
+
+            playBackground(difficulty) {
+                if (this.audioContext.state === "suspended") {
+                    this.audioContext.resume().catch(() => {});
+                }
+                this.stopBackground();
+                const themes = {
+                    facil: [
+                        [AudioEngine.NOTAS.C4, 300],
+                        [AudioEngine.NOTAS.E4, 300],
+                        [AudioEngine.NOTAS.G4, 300]
+                    ],
+                    medio: [
+                        [AudioEngine.NOTAS.D4, 250],
+                        [AudioEngine.NOTAS.F4, 250],
+                        [AudioEngine.NOTAS.A4, 250]
+                    ],
+                    dificil: [
+                        [AudioEngine.NOTAS.E4, 180],
+                        [AudioEngine.NOTAS.G4, 180],
+                        [AudioEngine.NOTAS.B4, 180]
+                    ]
+                };
+                const pattern = themes[difficulty] || themes.facil;
+                let index = 0;
+                this.backgroundInterval = setInterval(() => {
+                    const [freq, dur] = pattern[index % pattern.length];
+                    this.tocar(freq, dur);
+                    index++;
+                }, 400);
+            }
+
+            stopMenu() {
+                if (this.menuInterval) {
+                    clearInterval(this.menuInterval);
+                    this.menuInterval = null;
+                }
+            }
+
+            playMenu() {
+                if (this.audioContext.state === "suspended") {
+                    this.audioContext.resume().catch(() => {});
+                }
+                this.stopMenu();
+                const menuTheme = [
+                    [AudioEngine.NOTAS.C4, 400],
+                    [AudioEngine.NOTAS.E4, 400],
+                    [AudioEngine.NOTAS.G4, 500],
+                    [AudioEngine.NOTAS.C5, 600]
+                ];
+                let index = 0;
+                this.menuInterval = setInterval(() => {
+                    const [freq, dur] = menuTheme[index % menuTheme.length];
+                    this.tocar(freq, dur);
+                    index++;
+                }, 700);
+            }
+
+        }
+
+        // ============================================
+        // NPC SYSTEM
+        // ============================================
+        class NPC {
+            constructor(nome, personalidade) {
+                this.nome = nome || "Assistente";
+                this.personalidade = personalidade || "amigavel";
+                this.dicas_usadas = 0;
+                this.max_dicas = 3;
+                this.estado = "idle";
+                this.contador_interacoes = 0;
+
+                this.dialogos = {
+                    saudacao: {
+                        amigavel: [
+                            "Olá! Bem-vindo ao Jogo da Forca! 👋",
+                            "Oi aí! Que tal um jogo de adivinhar palavras? 🎮",
+                            "Bom dia! Vou te ajudar a vencer esse desafio!",
+                            "Olá, adventureiro! Preparado para o desafio? ⚔️",
+                        ],
+                        misterioso: [
+                            "Uma sombra se aproxima... Você ousa entrar nesse jogo? 🌑",
+                            "Bem-vindo ao reino das palavras esquecidas...",
+                            "Hmmm, mais um desafiante... Vamos ver seu potencial.",
+                            "A sorte está ao seu lado, espero...",
+                        ],
+                        profesional: [
+                            "Bem-vindo ao sistema de Jogo da Forca v2.0",
+                            "Estou aqui para assistência técnica e dicas estratégicas.",
+                            "Vamos começar a sessão de jogo.",
+                            "Sistema pronto. Aguardando próxima ação.",
+                        ],
+                        guru: [
+                            "Sente-se, jovem aprendiz. O guru conhece o caminho das palavras.",
+                            "A sabedoria das letras está à sua disposição.",
+                            "Feche os olhos e escute o suspiro das palavras.",
+                            "Meu conselho será sua luz neste jogo.",
+                        ],
+                        entusiasta: [
+                            "UHAU! Você chegou! Isso vai ser INCRÍVEL! 🎉",
+                            "Que animação! Vamos começar já!",
+                            "Eba! Mais um jogador! Preparado para vencer? 💪",
+                            "VAAAAMO! Você vai arrasar nesse jogo!",
+                        ]
+                    },
+                    encoraja: {
+                        amigavel: [
+                            "Você consegue! Vamos lá! 💪",
+                            "Não desista agora, você está indo bem!",
+                            "Acredito em você! Continue tentando!",
+                            "Vamos! Mais um acerto e você vence!",
+                        ],
+                        misterioso: [
+                            "A escuridão não te vence... nem a palavra.",
+                            "Teu destino não está selado... ainda.",
+                            "Continue. Há esperança nesta jornada.",
+                            "O final ainda não foi escrito...",
+                        ],
+                        profesional: [
+                            "Continue com a análise lógica.",
+                            "Seu desempenho melhora a cada tentativa.",
+                            "Sistema mantém esperança em seu êxito.",
+                            "Proceda com a próxima análise.",
+                        ],
+                        guru: [
+                            "Respire fundo. A resposta mora no silêncio entre as letras.",
+                            "Acredite no seu instinto: as vogais te guiarão.",
+                            "O guru diz: perseverança é a chave para desvendar o mistério.",
+                            "Siga o fluxo das palavras, e o acerto será seu.",
+                        ],
+                        entusiasta: [
+                            "VÁ! VÁ! VÁ! 🚀",
+                            "VOCÊ TÁ INDO BEM DEMAIS! 🔥",
+                            "NÃO PARA! CONTINUA TENTANDO! 💥",
+                            "ISSO! FORÇA TOTAL! ⚡",
+                        ]
+                    },
+                    acerto: {
+                        amigavel: [
+                            "Boa! Você acertou! ✨",
+                            "Perfeito! Você tem bom palpite!",
+                            "Excelente! Continue assim!",
+                            "Que sorte a sua! 🎯",
+                        ],
+                        misterioso: [
+                            "A letra revelou seu segredo...",
+                            "Teu instinto não te falha.",
+                            "Assim, gradualmente, a verdade emerge.",
+                            "Você caminha pelo caminho certo.",
+                        ],
+                        profesional: [
+                            "Desempenho esperado. Prossiga.",
+                            "Análise correta. Continue.",
+                            "Acerto registrado no sistema.",
+                            "Eficiência comprovada.",
+                        ],
+                        guru: [
+                            "A letra certa encontrou seu lugar. O caminho está aberto.",
+                            "A sabedoria flui, e você a manifestou com sabedoria.",
+                            "Ótimo. Cada acerto aproxima você da verdade.",
+                            "A intuição do guru foi confirmada.",
+                        ],
+                        entusiasta: [
+                            "SIIIIII!!! ACERTOU!!! 🎉",
+                            "ARRASAAAA!!! 🔥🔥🔥",
+                            "QUE JOGADA ÉPICA!!! ⚡",
+                            "BRAVO! BRAVO! BRAVO! 👏",
+                        ]
+                    },
+                    erro: {
+                        amigavel: [
+                            "Que pena! Essa não estava lá.",
+                            "Errou dessa vez, mas tenta de novo!",
+                            "Nem sempre acertamos, tente denovo!",
+                            "Fica bem! Você consegue!",
+                        ],
+                        misterioso: [
+                            "A letra não estava no destino.",
+                            "A escuridão mantém seu segredo.",
+                            "Nem todo caminho leva à verdade.",
+                            "A jornada exige mais sacrifício.",
+                        ],
+                        profesional: [
+                            "Tente uma abordagem diferente.",
+                            "Erro registrado. Recalibrando estratégia.",
+                            "Análise recomenda: revisar dados.",
+                            "Próxima tentativa com nova tática.",
+                        ],
+                        guru: [
+                            "O erro também é um mestre. Observe e tente outra letra.",
+                            "A palavra ainda não se revela. Persista com calma.",
+                            "O guru não se decepciona. Aprenda com cada escolha.",
+                            "Mantenha a mente serena; a resposta está próxima.",
+                        ],
+                        entusiasta: [
+                            "AH, ERROU! MAS CONTINUA! 💪",
+                            "NÃO DESISTE! TENTA DENOVO! 🔥",
+                            "AINDA TEM CHANCE! BORA! 🚀",
+                            "ÂNIMO! VOCÊ CONSEGUE! ⚡",
+                        ]
+                    },
+                    vitoria: {
+                        amigavel: [
+                            "PARABÉNS! Você venceu! 🎉",
+                            "Que vitória magnífica!",
+                            "Você é um verdadeiro campeão! 🏆",
+                            "Fantástico! Você arrasou!",
+                        ],
+                        misterioso: [
+                            "A jornada chegou ao fim... gloriosamente.",
+                            "Teu destino se cumpriu em vitória.",
+                            "As sombras cedem ante teu triunfo.",
+                            "Você provou ser digno deste desafio.",
+                        ],
+                        profesional: [
+                            "Desempenho: 100% bem-sucedido. 🎯",
+                            "Missão cumprida com êxito total.",
+                            "Parabéns! Eficiência máxima atingida!",
+                            "Resultado: VITÓRIA CONFIRMADA.",
+                        ],
+                        guru: [
+                            "A vitória é a recompensa de quem escuta a sabedoria.",
+                            "A palavra se curvou à sua paciência e conhecimento.",
+                            "O guru aprova sua jornada. Parabéns!",
+                            "Alcançaste o resultado por meio da calma e do foco.",
+                        ],
+                        entusiasta: [
+                            "VOC� VENCEUUUUUU!!! ??????",
+                            "QUE VIT�RIA ESPETACULAR!!! ???",
+                            "CAMPE���!!! ??",
+                            "�PICO! Voc� detonou!",
+                        ]
+                    },
+                    derrota: {
+                        amigavel: [
+                            "A vit�ria para na pr�xima, tenho certeza!",
+                            "Fico triste, mas tenta de novo!",
+                            "N�o se preocupe! Voc� consegue na pr�xima!",
+                        ],
+                        misterioso: [
+                            "As sombras reclamam sua vitória.",
+                            "O destino não estava a seu favor desta vez.",
+                            "A escuridão prevalece... por agora.",
+                            "Mas a próxima oportunidade te aguarda...",
+                        ],
+                        profesional: [
+                            "Fim de sessão. Resultado: DERROTA.",
+                            "Recomendação: Tente novamente com nova tática.",
+                            "Análise: Estratégia requer revisão.",
+                            "Sistema aguarda novo jogo.",
+                        ],
+                        guru: [
+                            "Nem todo mestre vence sempre. Aprenda e retorne mais forte.",
+                            "A derrota é apenas um passo. O guru vê seu potencial.",
+                            "Continue, jovem aprendiz; a próxima partida será sua.",
+                            "As lições são mais valiosas do que as vitórias momentâneas.",
+                        ],
+                        entusiasta: [
+                            "AH! QUASE! TENTA DENOVO! 🔥",
+                            "NÃO DESANIMA! PRÓXIMA É TUAS! 💪",
+                            "VAMOS! MAIS UMA RODADA! 🚀",
+                            "TENTA DENOVO! VOCÊ CONSEGUE! ⚡",
+                        ]
+                    }
+                };
+
+                this.dicas = {
+                    amigavel: [
+                        "Tente as vogais primeiramente! (A, E, I, O, U)",
+                        "Procure por letras comuns como R, S, T, N...",
+                        "Pense em palavras relacionadas a programação!",
+                        "Letras frequentes em português: R, S, A, O, D...",
+                        "Tente uma letra que aparece muitas vezes!",
+                    ],
+                    misterioso: [
+                        "O caminho da sabedoria começa nas vogais...",
+                        "Os antigos conhecem bem: R, S, T... teste-as.",
+                        "A palavra sussurra seus segredos... ouça com cuidado.",
+                        "Em cada língua há letras que reinam... testa-as.",
+                        "O padrão se revela apenas aos observadores atentos.",
+                    ],
+                    profesional: [
+                        "Algoritmo recomenda: Comece com vogais.",
+                        "Análise estatística: R, S, T, N, O têm alta frequência.",
+                        "Tática sugerida: Teste letras de alta probabilidade.",
+                        "Dados indicam: Consoantes duplas são estratégia válida.",
+                        "Sistema recomenda revisão de padrões.",
+                    ],
+                    entusiasta: [
+                        "VÁ! Teste as vogais! A, E, I, O, U! 🚀",
+                        "FORÇA! As letras comuns te ajudam! R, S, T! 💪",
+                        "QUE IDEIA BRILHANTE! Pense em PROGRAMAÇÃO! 🧠",
+                        "SENSACIONAL! Padrões visuais te ajudam! 👀",
+                        "ÉPICO! Tente duplas de consoantes! 🎯",
+                    ],
+                    guru: [
+                        "Ouça sua intuição: comece por A ou E.",
+                        "O guru sugere: a palavra esconde uma letra repetida.",
+                        "Mantenha o foco. Há um padrão simples nesta palavra.",
+                        "As dicas do mestre apontam para uma vogal forte.",
+                        "Escolha sabedoria: teste primeiro uma consoante comum.",
+                    ]
+                };
+            }
+
+            saudar() {
+                this.estado = "feliz";
+                const lista = this.dialogos.saudacao[this.personalidade];
+                return this._selecionar_aleatorio(lista);
+            }
+
+            encorajar() {
+                this.estado = "feliz";
+                const lista = this.dialogos.encoraja[this.personalidade];
+                return this._selecionar_aleatorio(lista);
+            }
+
+            dar_dica() {
+                if (this.dicas_usadas >= this.max_dicas) {
+                    return "Desculpe, você já usou todas as dicas! Você consegue sem mim! 💪";
+                }
+                this.dicas_usadas += 1;
+                const lista = this.dicas[this.personalidade];
+                const dica = this._selecionar_aleatorio(lista);
+                return `[DICA ${this.dicas_usadas}/${this.max_dicas}] 💡 ${dica}`;
+            }
+
+            reagir_acerto() {
+                this.estado = "feliz";
+                const lista = this.dialogos.acerto[this.personalidade];
+                return this._selecionar_aleatorio(lista);
+            }
+
+            reagir_erro() {
+                this.estado = "triste";
+                const lista = this.dialogos.erro[this.personalidade];
+                return this._selecionar_aleatorio(lista);
+            }
+
+            reagir_vitoria() {
+                this.estado = "feliz";
+                const lista = this.dialogos.vitoria[this.personalidade];
+                return this._selecionar_aleatorio(lista);
+            }
+
+            reagir_derrota() {
+                this.estado = "triste";
+                const lista = this.dialogos.derrota[this.personalidade];
+                return this._selecionar_aleatorio(lista);
+            }
+
+            resetar_dicas() {
+                this.dicas_usadas = 0;
+            }
+
+            _selecionar_aleatorio(lista) {
+                if (!lista || lista.length === 0) return null;
+                this.contador_interacoes += 1;
+                return lista[Math.floor(Math.random() * lista.length)];
+            }
+
+            emoji_estado() {
+                const emojis = {
+                    idle: "😐",
+                    feliz: "😊",
+                    triste: "😢",
+                    pensando: "🤔"
+                };
+                return emojis[this.estado] || "😐";
+            }
+        }
+
+        // ============================================
+        // JOGO DA FORCA
+        // ============================================
+        const palavras = [
+            // Programação (20)
+            "JAVASCRIPT", "PYTHON", "PROGRAMACAO", "ALGORITMO", "VARIAVEL",
+            "FUNCAO", "BIBLIOTECA", "FRAMEWORK", "DATABASE", "SERVIDOR",
+            "INTERFACE", "SOFTWARE", "HARDWARE", "SISTEMA", "COMPUTADOR",
+            "INTERNET", "NAVEGADOR", "FRONTEND", "BACKEND", "DESENVOLVEDOR",
+            // Web (15)
+            "HTML", "CSS", "REACT", "NODEJS", "ESTRUTURA",
+            "OBJETO", "ARRAY", "STRING", "BOOLEAN", "RESPONSIVO",
+            "CACHE", "COOKIE", "SESSAO", "TOKEN", "AUTENTICACAO",
+            // Brasil (15)
+            "BRASIL", "BAHIA", "SERTAO", "CAATINGA", "AMAZONIA",
+            "BRASILIA", "CARNAVAL", "FUTEBOL", "SAMBA", "BOSSA",
+            "FLORESTA", "PAMPAS", "CERRADO", "PANTANAL", "RIO",
+            // Animais (15)
+            "LEAO", "TIGRE", "ELEFANTE", "GIRAFA", "ZEBRA",
+            "PAPAGAIO", "AGUIA", "PINGUIM", "FOCA", "BALEIA",
+            "URSO", "LOBO", "RAPOSA", "COELHO", "GATO",
+            // Alimentos (15)
+            "PIZZA", "HAMBURGUER", "FRANGO", "SALADA", "ARROZ",
+            "FEIJAO", "MACARRAO", "CHOCOLATE", "MORANGO", "LARANJA",
+            "MELANCIA", "MELAO", "ABACAXI", "BANANA", "MACA",
+            // Esportes (15)
+            "FUTEBOL", "VOLEI", "BASQUETE", "TENIS", "NATACAO",
+            "CORRIDA", "CICLISMO", "ESQUI", "ESCALADA", "SURFE",
+            "BOXE", "JUDÔ", "KARATE", "GINASTICA", "ATLETISMO",
+            // Elementos da Natureza (15)
+            "AGUA", "FOGO", "TERRA", "VENTO", "RELAMPAGO",
+            "TROVAO", "NUVEM", "CHUVA", "NEVE", "GELO",
+            "AREIA", "PEDRA", "MONTANHA", "OCEANO", "LAGOA",
+            // Emoções (15)
+            "ALEGRIA", "TRISTEZA", "RAIVA", "SURPRESA", "MEDO",
+            "AMOR", "ODIO", "ESPERANCA", "CALMA", "ANSIEDADE",
+            "CORAGEM", "VERGONHA", "CIUME", "REMORSO", "FELICIDADE",
+            // Profissões (15)
+            "MEDICO", "PROFESSOR", "ENGENHEIRO", "ADVOGADO", "CONTADOR",
+            "POLICIAIS", "BOMBEIRO", "PILOTO", "MUSICO", "ATOR",
+            "PINTOR", "POETA", "JORNALISTA", "ARQUITETO", "CIENTISTA",
+            // Cores (12)
+            "VERMELHO", "AZUL", "VERDE", "AMARELO", "ROXO",
+            "ROSA", "PRETO", "BRANCO", "CINZA", "MARROM",
+            "LARANJA", "TURQUESA",
+            // Instrumentos Musicais (12)
+            "GUITARRA", "PIANO", "VIOLAO", "FLAUTA", "TROMPETE",
+            "BATERIA", "VIOLINO", "HARPA", "ACORDEON", "SAXOFONE",
+            "CLARINETE", "TROMBONE",
+            // Planetas e Espaço (12)
+            "MERCURIO", "VENUS", "MARTE", "JUPITER", "SATURNO",
+            "URANO", "NETUNO", "SOL", "LUA", "ESTRELA",
+            "UNIVERSO", "GALAXIA",
+            // Personagens Famosos (12)
+            "PELÉ", "RONALDO", "RONALDINHO", "NEYMAR", "MARADONA",
+            "PELE", "CRISTIANO", "MESSI", "BECKHAM", "ZIDANE",
+            "RONALDINHO", "RONALDO",
+            // Objetos do Dia a Dia (15)
+            "MESA", "CADEIRA", "PORTA", "JANELA", "LAMPADA",
+            "ESPELHO", "LIVRO", "TELEFONE", "COMPUTADOR", "MOUSE",
+            "TECLADO", "MONITOR", "IMPRESSORA", "MESA", "CAMA",
+            // Países (15)
+            "JAPAO", "ALEMANHA", "FRANCA", "ITALIA", "ESPANHA",
+            "PORTUGAL", "INGLATERRA", "IRLANDA", "GRECIA", "HOLLANDA",
+            "BELGICA", "SUECIA", "NORUEGA", "DINAMARCA", "FINLANDIA",
+            // Cidades Famosas (15)
+            "PARISA", "ROMA", "LONDRES", "MADRI", "BERLIM",
+            "AMSTERDA", "VIENA", "PRAGA", "VARSOVIA", "ISTAMBUL",
+            "ATENAS", "MOSCOW", "LISBOA", "ZURIQUE", "ESTOCOLMO",
+        ];
+
+        let chosenWordEntry = null;
+        let chosenWord = "";
+        let guessedLetters = [];
+        let letrasErradas = [];
+        let lives = 6;
+        let difficulty = "facil";
+        let wordBank = [];
+        let databaseLoaded = false;
+        let menuPlaying = false;
+        const audio = new AudioEngine();
+        let npc = new NPC("Robin", "amigavel");
+        let gameOver = false;
+
+        const wordDisplay = document.getElementById("word-display");
+
+        const keyboard = document.getElementById("keyboard");
+        const livesDisplay = document.getElementById("lives");
+        const message = document.getElementById("message");
+        const resetBtn = document.getElementById("reset-btn");
+        const npcName = document.getElementById("npc-name");
+        const npcPersonality = document.getElementById("npc-personality");
+        const npcDialog = document.getElementById("npc-dialog");
+        const npcAvatar = document.getElementById("npc-avatar");
+        const hintBtn = document.getElementById("hint-btn");
+        const hintCounter = document.getElementById("hints-counter");
+        const hintDisplay = document.getElementById("hint-display");
+        const difficultySelect = document.getElementById("difficulty-select");
+        const themeDisplay = document.getElementById("theme-display");
+        const personalitySelect = document.getElementById("personality-select");
+        const npcTalkBtn = document.getElementById("npc-talk");
+        const scoreDisplay = document.getElementById("score");
+        const erradasContainer = document.getElementById("erradas-container");
+        const erradasLetras = document.getElementById("erradas");
+        const startScreen = document.getElementById("start-screen");
+        const startBtn = document.getElementById("start-btn");
+
+        const npcNames = {
+            amigavel: "Robin",
+            misterioso: "Shadow",
+            profesional: "CORE",
+            guru: "Guru",
+            entusiasta: "Blaze"
+        };
+
+        const personalityLabels = {
+            amigavel: "Amigável",
+            misterioso: "Misterioso",
+            profesional: "Profissional",
+            guru: "Guru",
+            entusiasta: "Entusiasta"
+        };
+
+        function updateNpcAvatar(personality, state) {
+            npcAvatar.className = `npc-avatar ${personality} ${state}`;
+        }
+
+        const difficultyLabels = {
+            facil: "Fácil",
+            medio: "Médio",
+            dificil: "Difícil"
+        };
+        async function loadWordDatabase() {
+            // Tenta a API (servidor Go) primeiro
+            try {
+                const apiResp = await fetch('/api/words');
+                if (apiResp.ok) {
+                    const db = await apiResp.json();
+                    if (Array.isArray(db)) {
+                        wordBank = db;
+                    } else if (Array.isArray(db.words)) {
+                        wordBank = db.words;
+                    } else {
+                        wordBank = [];
+                    }
+                    databaseLoaded = wordBank.length > 0;
+                    return;
+                }
+            } catch (e) {
+                // console.warn('API não disponível, usando fallback local', e);
+            }
+
+            // Fallback: carregar arquivo local `palavras-db.json`
+            try {
+                const response = await fetch('palavras-db.json');
+                if (!response.ok) throw new Error('Falha ao carregar o banco de dados local');
+                const db = await response.json();
+                wordBank = Array.isArray(db.words) ? db.words : (Array.isArray(db) ? db : []);
+                databaseLoaded = wordBank.length > 0;
+            } catch (error) {
+                console.warn('Não foi possível carregar o banco de dados local:', error);
+                wordBank = palavras.map(word => ({
+                    word,
+                    hint: 'Dica específica não disponível.',
+                    category: 'Geral',
+                    difficulty: difficulty
+                }));
+                databaseLoaded = false;
+            }
+        }
+
+        function getWordPool() {
+            if (!wordBank || wordBank.length === 0) {
+                return palavras.map(w => ({ word: w, hint: 'Dica específica não disponível.', category: 'Geral', difficulty }));
+            }
+            const pool = wordBank.filter(item => (item.difficulty || '').toLowerCase() === (difficulty || '').toLowerCase());
+            if (pool.length === 0) return wordBank;
+            return pool;
+        }
+
+        function initGame() {
+            lives = 6;
+            guessedLetters = [];
+            letrasErradas = [];
+            gameOver = false;
+            difficultySelect.value = difficulty;
+            themeDisplay.innerText = difficultyLabels[difficulty] || "Fácil";
+
+            const pool = getWordPool();
+            chosenWordEntry = pool[Math.floor(Math.random() * pool.length)] || { word: "NADA", hint: "Banco de dados vazio.", category: "Geral", difficulty };
+            chosenWord = chosenWordEntry.word;
+
+            livesDisplay.innerText = lives + " ❤️";
+            message.innerText = "";
+            hintDisplay.innerText = "";
+            hintBtn.disabled = false;
+            erradasLetras.innerText = "";
+            erradasContainer.style.display = "none";
+            audio.stopBackground();
+            audio.playBackground(difficulty);
+
+            keyboard.innerHTML = "";
+            "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("").forEach(letter => {
+                const btn = document.createElement("button");
+                btn.innerText = letter;
+                btn.addEventListener("click", () => handleGuess(letter, btn));
+                keyboard.appendChild(btn);
+            });
+
+            updateDisplay();
+            npc.resetar_dicas();
+            hintCounter.innerText = `${npc.dicas_usadas}/${npc.max_dicas}`;
+            npcDialog.innerText = npc.saudar();
+            updateHintButtonLabel();
+        }
+
+        function updateDisplay() {
+            const display = chosenWord
+                .split("")
+                .map(letter => (guessedLetters.includes(letter) ? letter : "_"))
+                .join(" ");
+
+            wordDisplay.innerText = display;
+            scoreDisplay.innerText = `${guessedLetters.length}/${chosenWord.split("").filter((v, i, a) => a.indexOf(v) === i).length}`;
+
+            if (!display.includes("_")) {
+                message.innerText = "🎉 VOCÊ VENCEU!";
+                audio.efeitoVitoria();
+                npcDialog.innerText = npc.reagir_vitoria();
+                npc.estado = "feliz";
+                updateNpcAvatar(npc.personalidade, npc.estado);
+                disableButtons();
+                gameOver = true;
+            }
+        }
+
+        function handleGuess(letter, button) {
+            if (gameOver) return;
+
+            button.disabled = true;
+
+            if (chosenWord.includes(letter)) {
+                guessedLetters.push(letter);
+                button.classList.add("correct");
+                audio.efeitoAcerto();
+                npcDialog.innerText = npc.reagir_acerto();
+                npc.estado = "feliz";
+            } else {
+                letrasErradas.push(letter);
+                lives--;
+                livesDisplay.innerText = lives + " ❤️";
+                button.classList.add("wrong");
+                audio.efeitoErro();
+                npcDialog.innerText = npc.reagir_erro();
+                npc.estado = "triste";
+
+                erradasLetras.innerText = letrasErradas.join(", ");
+                erradasContainer.style.display = "block";
+            }
+
+            updateNpcAvatar(npc.personalidade, npc.estado);
+
+            if (lives <= 0) {
+                message.innerText = `👻 GAME OVER! A palavra era: ${chosenWord}`;
+                audio.efeitoDerrota();
+                npcDialog.innerText = npc.reagir_derrota();
+                npc.estado = "triste";
+                updateNpcAvatar(npc.personalidade, npc.estado);
+                disableButtons();
+                gameOver = true;
+            } else {
+                updateDisplay();
+            }
+        }
+
+        function disableButtons() {
+            const buttons = keyboard.querySelectorAll("button");
+            buttons.forEach(btn => btn.disabled = true);
+        }
+
+        function revealRandomLetter() {
+            const remaining = chosenWord.split("").filter(l => !guessedLetters.includes(l));
+            if (remaining.length === 0) return null;
+            const letter = remaining[Math.floor(Math.random() * remaining.length)];
+            guessedLetters.push(letter);
+            // disable the corresponding keyboard button if present
+            const btn = Array.from(keyboard.querySelectorAll('button')).find(b => b.innerText === letter);
+            if (btn) {
+                btn.classList.add('correct');
+                btn.disabled = true;
+            }
+            updateDisplay();
+            return letter;
+        }
+
+        function updateHintButtonLabel() {
+            const nextHint = Math.min(npc.dicas_usadas + 1, npc.max_dicas);
+            if (npc.personalidade === "guru") {
+                hintBtn.innerText = `🕉️ Pedir orientação ${nextHint}/${npc.max_dicas}`;
+            } else {
+                hintBtn.innerText = `💡 Dica ${nextHint}/${npc.max_dicas}`;
+            }
+        }
+
+        function formatHintContent() {
+            const word = chosenWordEntry?.word || chosenWord || ""
+            const category = chosenWordEntry?.category || "Geral";
+            const difficultyLabel = difficultyLabels[chosenWordEntry?.difficulty] || difficultyLabels[difficulty] || "Fácil";
+            const letters = word.split("");
+            const vowels = [...new Set(letters.filter(l => "AEIOU".includes(l)))].join(", ") || "Nenhuma";
+            const repeated = [...new Set(letters.filter((l, i, a) => a.indexOf(l) !== i))].join(", ") || "Nenhuma";
+            switch (npc.dicas_usadas) {
+                case 1:
+                    return `Categoria: <strong>${category}</strong> • Dificuldade: <strong>${difficultyLabel}</strong>`;
+                case 2:
+                    return `Tamanho: <strong>${word.length}</strong> letras • Vogais: <strong>${vowels}</strong> • Repetidas: <strong>${repeated}</strong>`;
+                case 3:
+                    return `<strong>Dica final:</strong> ${chosenWordEntry?.hint || "Tente usar letras frequentes."}`;
+                default:
+                    return "Use suas dicas com sabedoria!";
+            }
+        }
+
+        resetBtn.addEventListener("click", initGame);
+
+        difficultySelect.addEventListener("change", (e) => {
+            difficulty = e.target.value;
+            themeDisplay.innerText = difficultyLabels[difficulty] || "Fácil";
+            initGame();
+        });
+
+        personalitySelect.addEventListener("change", (e) => {
+            const newPersonality = e.target.value;
+            npc = new NPC(npcNames[newPersonality], newPersonality);
+            npcName.innerText = npcNames[newPersonality];
+            npcPersonality.innerText = personalityLabels[newPersonality];
+            updateNpcAvatar(newPersonality, npc.estado);
+            npcDialog.innerText = npc.saudar();
+            updateHintButtonLabel();
+            npc.resetar_dicas();
+            hintCounter.innerText = `${npc.dicas_usadas}/${npc.max_dicas}`;
+        });
+
+        hintBtn.addEventListener("click", () => {
+            const dialog = npc.dar_dica();
+            // Se for Guru e for a última dica, revele uma letra automaticamente
+            if (npc.personalidade === 'guru' && npc.dicas_usadas === npc.max_dicas) {
+                const revealed = revealRandomLetter();
+                npcDialog.innerHTML = `${dialog} <br><em>O Guru revelou a letra: <strong>${revealed || '—'}</strong></em>`;
+            } else {
+                npcDialog.innerHTML = dialog;
+            }
+            hintDisplay.innerHTML = formatHintContent();
+            hintCounter.innerText = `${npc.dicas_usadas}/${npc.max_dicas}`;
+            updateHintButtonLabel();
+            if (npc.dicas_usadas >= npc.max_dicas) {
+                hintBtn.disabled = true;
+                hintBtn.innerText = "Sem mais dicas";
+            }
+        });
+
+        npcTalkBtn.addEventListener("click", () => {
+            npcDialog.innerText = npc.encorajar();
+        });
+
+        startBtn.addEventListener("click", async () => {
+            startBtn.disabled = true;
+            startBtn.innerText = "Preparando...";
+            await loadWordDatabase();
+            audio.playMenu();
+            startScreen.classList.add("hide");
+            setTimeout(() => {
+                startScreen.style.display = "none";
+                audio.stopMenu();
+                initGame();
+            }, 900);
+        });
+
+        // Tocar música de menu ao passar o mouse (pode depender da permissão do navegador)
+        startScreen.addEventListener('mouseenter', () => {
+            try {
+                if (!menuPlaying) {
+                    audio.playMenu();
+                    menuPlaying = true;
+                }
+            } catch (e) { /* ignore */ }
+        });
+
+        startScreen.addEventListener('mouseleave', () => {
+            try {
+                if (menuPlaying) {
+                    audio.stopMenu();
+                    menuPlaying = false;
+                }
+            } catch (e) {}
+        });
+
+        loadWordDatabase();
+    </script>
+</body>
+</html>
+

@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#11171b">
+    <title>Campo Minado</title>
+    <style>
+        :root {
+            color-scheme: dark;
+            --page: #11171b;
+            --panel: #20282c;
+            --panel-edge: #39464a;
+            --tile: #46565a;
+            --tile-hover: #607276;
+            --tile-open: #182124;
+            --ink: #edf3ee;
+            --muted: #9eafaa;
+            --mint: #a6e3c5;
+            --coral: #f27f69;
+            --cell-size: 34px;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            min-height: 100vh;
+            margin: 0;
+            padding: 28px 16px;
+            display: grid;
+            place-items: center;
+            color: var(--ink);
+            background-color: var(--page);
+            background-image: radial-gradient(ellipse at 50% 0%, #29363a 0%, transparent 55%), repeating-linear-gradient(135deg, transparent 0 28px, rgb(255 255 255 / 1.5%) 29px 30px);
+            font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+        }
+
+        button, select { font: inherit; }
+
+        .game {
+            width: min(100%, 760px);
+            padding: 24px;
+            border: 1px solid var(--panel-edge);
+            border-radius: 12px;
+            background: var(--panel);
+            box-shadow: 0 22px 60px rgb(0 0 0 / 35%);
+        }
+
+        .heading {
+            display: flex;
+            justify-content: space-between;
+            align-items: end;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            margin: 0;
+            color: var(--mint);
+            font-size: clamp(1.5rem, 7vw, 2.2rem);
+            line-height: 1;
+        }
+
+        .eyebrow {
+            margin: 0 0 7px;
+            color: var(--muted);
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        select, .action {
+            min-height: 42px;
+            padding: 8px 13px;
+            border: 1px solid #526268;
+            border-radius: 6px;
+            color: var(--ink);
+            background: #303b3f;
+        }
+
+        select { flex: 1 1 220px; cursor: pointer; }
+
+        .action {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            cursor: pointer;
+            font-weight: 700;
+            transition: background-color 140ms ease, border-color 140ms ease;
+            text-decoration: none;
+        }
+
+        .action:hover { background: #415055; border-color: var(--mint); }
+        .action:focus-visible, select:focus-visible, .cell:focus-visible { outline: 3px solid var(--mint); outline-offset: 2px; }
+        .action[aria-pressed="true"] { color: #11171b; background: var(--mint); border-color: var(--mint); }
+
+        .status {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 14px;
+            padding: 10px 14px;
+            border: 1px solid #070b0d;
+            border-radius: 7px;
+            background: #101619;
+        }
+
+        .counter { display: grid; gap: 2px; font-family: Consolas, "Courier New", monospace; }
+        .counter:last-child { text-align: right; }
+        .counter-label { color: var(--muted); font-family: "Trebuchet MS", "Segoe UI", sans-serif; font-size: 0.68rem; font-weight: 700; letter-spacing: 0.08em; }
+        .counter-value { color: var(--coral); font-size: 1.65rem; font-weight: 800; line-height: 1; }
+        #timer { color: var(--mint); }
+
+        .score-summary {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 8px 22px;
+            padding: 0 0 14px;
+            color: var(--muted);
+            font-size: 0.86rem;
+        }
+
+        .score-summary strong {
+            color: var(--mint);
+            font-family: Consolas, "Courier New", monospace;
+        }
+
+        .face {
+            width: 44px;
+            height: 44px;
+            padding: 0;
+            border: 1px solid #526268;
+            border-radius: 7px;
+            background: #303b3f;
+            font-size: 1.4rem;
+            cursor: pointer;
+        }
+
+        .message {
+            min-height: 1.5em;
+            margin: 0 0 10px;
+            color: var(--muted);
+            text-align: center;
+            font-size: 0.9rem;
+        }
+
+        .message[data-state="won"] { color: var(--mint); }
+        .message[data-state="lost"] { color: var(--coral); }
+
+        .board-wrap {
+            max-width: 100%;
+            overflow: auto;
+            border: 2px solid #0c1113;
+            border-radius: 6px;
+            background: #0c1113;
+            overscroll-behavior: contain;
+        }
+
+        .board {
+            display: grid;
+            grid-template-columns: repeat(var(--columns), var(--cell-size));
+            gap: 2px;
+            width: max-content;
+            padding: 3px;
+            margin: 0 auto;
+        }
+
+        .cell {
+            display: grid;
+            width: var(--cell-size);
+            height: var(--cell-size);
+            place-items: center;
+            padding: 0;
+            border: 0;
+            border-radius: 3px;
+            color: var(--ink);
+            background: var(--tile);
+            box-shadow: inset 0 1px rgb(255 255 255 / 12%), inset 0 -2px rgb(0 0 0 / 20%);
+            font-size: 1rem;
+            font-weight: 900;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .cell:hover:not(.open):not(:disabled) { background: var(--tile-hover); }
+        .cell.open { background: var(--tile-open); box-shadow: inset 0 0 0 1px #273337; cursor: default; }
+        .cell.flagged { font-size: 1.05rem; }
+        .cell.exploded { background: #a83e36; }
+        .cell.wrong-flag { color: var(--coral); }
+        .n1 { color: #69b9f0; }
+        .n2 { color: #8ee0a2; }
+        .n3 { color: #f27f69; }
+        .n4 { color: #c4a0f2; }
+        .n5 { color: #f0cd68; }
+        .n6 { color: #72d4cf; }
+        .n7 { color: #f4a66a; }
+        .n8 { color: #e8eeeb; }
+
+        .footer-note {
+            margin: 12px 0 0;
+            color: var(--muted);
+            text-align: center;
+            font-size: 0.78rem;
+        }
+
+        @media (max-width: 520px) {
+            :root { --cell-size: 30px; }
+            body { padding: 12px 8px; }
+            .game { padding: 16px 12px; }
+            .heading { align-items: start; flex-direction: column; gap: 6px; }
+            .controls { display: grid; grid-template-columns: 1fr 1fr; }
+            select { grid-column: 1 / -1; }
+            .action { padding-inline: 8px; font-size: 0.88rem; }
+        }
+
+        @media (prefers-reduced-motion: no-preference) {
+            .game { animation: arrive 380ms ease-out both; }
+            @keyframes arrive { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        }
+    </style>
+</head>
+<body>
+    <main class="game" aria-labelledby="title">
+        <header class="heading">
+            <div>
+                <p class="eyebrow">Um clássico de atenção</p>
+                <h1 id="title">Campo Minado</h1>
+            </div>
+        </header>
+
+        <section class="controls" aria-label="Controles do jogo">
+            <select id="difficulty" aria-label="Dificuldade">
+                <option value="beginner">Iniciante · 9 × 9 · 10 minas</option>
+                <option value="intermediate">Intermediário · 16 × 16 · 40 minas</option>
+                <option value="advanced">Avançado · 24 × 24 · 99 minas</option>
+            </select>
+            <button class="action" id="flag-mode" type="button" aria-pressed="false" title="Ativar modo de bandeiras">⚑ <span>Marcar</span></button>
+            <button class="action" id="reset" type="button" title="Começar uma nova partida">↻ <span>Reiniciar</span></button>
+            <a class="action" href="index.html?menu=1">← <span>Menu</span></a>
+            <button class="action" id="music-toggle" type="button" aria-pressed="false" title="Tocar trilha sonora"><span id="music-icon" aria-hidden="true">▶</span><span id="music-label">Tocar música</span></button>
+            <audio id="bgm" src="Pokémon - Abertura (Karaokê) - Áudio Oficial (Abertura PT-BR) - Digo Okê.mp3" loop preload="none"></audio>
+        </section>
+
+        <section class="status" aria-label="Placar">
+            <div class="counter">
+                <span class="counter-label">MINAS</span>
+                <span class="counter-value" id="mine-count" aria-live="polite">010</span>
+            </div>
+            <button class="face" id="face" type="button" aria-label="Reiniciar partida" title="Reiniciar partida">🙂</button>
+            <div class="counter">
+                <span class="counter-label">TEMPO</span>
+                <span class="counter-value" id="timer" aria-live="off">000</span>
+            </div>
+        </section>
+
+        <section class="score-summary" aria-label="Pontuação">
+            <span>Pontos da partida: <strong id="round-score">0</strong></span>
+            <span>Total no Campo Minado: <strong data-score-total="campominado">0</strong></span>
+        </section>
+
+        <p class="message" id="message" role="status" aria-live="polite">Escolha uma casa para começar. O primeiro clique é seguro.</p>
+        <div class="board-wrap" aria-label="Tabuleiro; use o clique para abrir casas e o botão Marcar para colocar bandeiras">
+            <div class="board" id="board" role="grid" aria-label="Tabuleiro de Campo Minado"></div>
+        </div>
+        <p class="footer-note">Clique com o botão direito para marcar uma bandeira.</p>
+    </main>
+
+    <script src="score-counter.js"></script>
+    <script>
+        (() => {
+            const LEVELS = {
+                beginner: { side: 9, mines: 10 },
+                intermediate: { side: 16, mines: 40 },
+                advanced: { side: 24, mines: 99 }
+            };
+            const boardElement = document.getElementById('board');
+            const difficultyElement = document.getElementById('difficulty');
+            const mineCountElement = document.getElementById('mine-count');
+            const timerElement = document.getElementById('timer');
+            const faceElement = document.getElementById('face');
+            const messageElement = document.getElementById('message');
+            const flagModeElement = document.getElementById('flag-mode');
+            const musicElement = document.getElementById('bgm');
+            const musicToggleElement = document.getElementById('music-toggle');
+            const musicIconElement = document.getElementById('music-icon');
+            const musicLabelElement = document.getElementById('music-label');
+            let side = 9;
+            let mineTotal = 10;
+            let cells = [];
+            let started = false;
+            let finished = false;
+            let flagMode = false;
+            let flags = 0;
+            let revealed = 0;
+            let elapsed = 0;
+            let timerId = null;
+
+            function formatCounter(value) {
+                const number = Math.max(-99, Math.min(999, value));
+                return number < 0 ? `-${String(Math.abs(number)).padStart(2, '0')}` : String(number).padStart(3, '0');
+            }
+
+            function setMessage(text, state = '') {
+                messageElement.textContent = text;
+                messageElement.dataset.state = state;
+            }
+
+            function updateMineCounter() {
+                mineCountElement.textContent = formatCounter(mineTotal - flags);
+            }
+
+            function startTimer() {
+                if (timerId !== null) return;
+                timerId = window.setInterval(() => {
+                    elapsed = Math.min(elapsed + 1, 999);
+                    timerElement.textContent = formatCounter(elapsed);
+                    if (elapsed === 999) stopTimer();
+                }, 1000);
+            }
+
+            function stopTimer() {
+                if (timerId !== null) window.clearInterval(timerId);
+                timerId = null;
+            }
+
+            function neighbors(index) {
+                const row = Math.floor(index / side);
+                const col = index % side;
+                const result = [];
+                for (let rowOffset = -1; rowOffset <= 1; rowOffset++) {
+                    for (let colOffset = -1; colOffset <= 1; colOffset++) {
+                        if (rowOffset === 0 && colOffset === 0) continue;
+                        const nextRow = row + rowOffset;
+                        const nextCol = col + colOffset;
+                        if (nextRow >= 0 && nextRow < side && nextCol >= 0 && nextCol < side) {
+                            result.push(nextRow * side + nextCol);
+                        }
+                    }
+                }
+                return result;
+            }
+
+            function placeMines(safeIndex) {
+                const candidates = Array.from({ length: cells.length }, (_, index) => index)
+                    .filter(index => index !== safeIndex);
+                for (let index = candidates.length - 1; index > 0; index--) {
+                    const swapIndex = Math.floor(Math.random() * (index + 1));
+                    [candidates[index], candidates[swapIndex]] = [candidates[swapIndex], candidates[index]];
+                }
+                for (const index of candidates.slice(0, mineTotal)) cells[index].mine = true;
+                for (let index = 0; index < cells.length; index++) {
+                    if (!cells[index].mine) {
+                        cells[index].adjacent = neighbors(index).filter(next => cells[next].mine).length;
+                    }
+                }
+            }
+
+            function renderCell(index) {
+                const cell = cells[index];
+                const element = boardElement.children[index];
+                element.className = 'cell';
+                element.textContent = '';
+                element.disabled = finished;
+                if (cell.revealed) {
+                    element.classList.add('open');
+                    element.disabled = true;
+                    if (cell.mine) {
+                        element.textContent = '✹';
+                        element.setAttribute('aria-label', 'Mina');
+                    } else if (cell.adjacent > 0) {
+                        element.textContent = String(cell.adjacent);
+                        element.classList.add(`n${cell.adjacent}`);
+                        element.setAttribute('aria-label', `${cell.adjacent} minas próximas`);
+                    } else {
+                        element.setAttribute('aria-label', 'Casa vazia');
+                    }
+                } else if (cell.flagged) {
+                    element.classList.add('flagged');
+                    element.textContent = '⚑';
+                    element.setAttribute('aria-label', 'Bandeira marcada');
+                } else {
+                    element.setAttribute('aria-label', `Casa ${Math.floor(index / side) + 1}, ${index % side + 1}, fechada`);
+                }
+                if (cell.exploded) element.classList.add('exploded');
+                if (cell.wrongFlag) {
+                    element.classList.add('wrong-flag');
+                    element.textContent = '×';
+                    element.setAttribute('aria-label', 'Bandeira incorreta');
+                }
+            }
+
+            function revealFrom(startIndex) {
+                const queue = [startIndex];
+                const queued = new Set(queue);
+                while (queue.length > 0) {
+                    const index = queue.shift();
+                    const cell = cells[index];
+                    if (cell.revealed || cell.flagged || cell.mine) continue;
+                    cell.revealed = true;
+                    revealed++;
+                    if (cell.adjacent === 0) {
+                        for (const next of neighbors(index)) {
+                            if (!queued.has(next) && !cells[next].revealed && !cells[next].flagged && !cells[next].mine) {
+                                queued.add(next);
+                                queue.push(next);
+                            }
+                        }
+                    }
+                }
+            }
+
+            function finishGame(won) {
+                finished = true;
+                stopTimer();
+                faceElement.textContent = won ? '😎' : '😵';
+                flagModeElement.setAttribute('aria-pressed', 'false');
+                flagMode = false;
+                for (let index = 0; index < cells.length; index++) {
+                    if (cells[index].mine) cells[index].revealed = true;
+                    if (cells[index].flagged && !cells[index].mine) cells[index].wrongFlag = true;
+                    renderCell(index);
+                }
+                if (won) {
+                    const basePoints = { beginner: 100, intermediate: 250, advanced: 500 }[difficultyElement.value];
+                    const earnedPoints = basePoints + Math.max(0, 300 - elapsed);
+                    document.getElementById('round-score').textContent = earnedPoints.toLocaleString('pt-BR');
+                    window.GameScoreCounter?.add('campominado', earnedPoints);
+                    setMessage(`Campo limpo! Você ganhou ${earnedPoints.toLocaleString('pt-BR')} pontos.`, 'won');
+                } else {
+                    setMessage('Você encontrou uma mina. Tente outra vez.', 'lost');
+                }
+            }
+
+            function openCell(index) {
+                if (finished || cells[index].revealed || cells[index].flagged) return;
+                if (flagMode) {
+                    toggleFlag(index);
+                    return;
+                }
+                if (!started) {
+                    placeMines(index);
+                    started = true;
+                    startTimer();
+                    setMessage('Partida em andamento. Boa sorte!');
+                }
+                if (cells[index].mine) {
+                    cells[index].exploded = true;
+                    finishGame(false);
+                    return;
+                }
+                revealFrom(index);
+                for (let cellIndex = 0; cellIndex < cells.length; cellIndex++) {
+                    if (cells[cellIndex].revealed) renderCell(cellIndex);
+                }
+                if (revealed === cells.length - mineTotal) finishGame(true);
+            }
+
+            function toggleFlag(index) {
+                if (finished || cells[index].revealed) return;
+                cells[index].flagged = !cells[index].flagged;
+                flags += cells[index].flagged ? 1 : -1;
+                updateMineCounter();
+                renderCell(index);
+            }
+
+            function createBoard() {
+                boardElement.replaceChildren();
+                boardElement.style.setProperty('--columns', side);
+                for (let index = 0; index < cells.length; index++) {
+                    const button = document.createElement('button');
+                    button.type = 'button';
+                    button.className = 'cell';
+                    button.setAttribute('role', 'gridcell');
+                    button.setAttribute('aria-label', `Casa ${Math.floor(index / side) + 1}, ${index % side + 1}, fechada`);
+                    boardElement.appendChild(button);
+                }
+            }
+
+            function newGame() {
+                stopTimer();
+                ({ side, mines: mineTotal } = LEVELS[difficultyElement.value]);
+                cells = Array.from({ length: side * side }, () => ({ mine: false, adjacent: 0, revealed: false, flagged: false, exploded: false, wrongFlag: false }));
+                started = false;
+                finished = false;
+                flagMode = false;
+                flags = 0;
+                revealed = 0;
+                elapsed = 0;
+                timerElement.textContent = '000';
+                document.getElementById('round-score').textContent = '0';
+                faceElement.textContent = '🙂';
+                flagModeElement.setAttribute('aria-pressed', 'false');
+                updateMineCounter();
+                setMessage('Escolha uma casa para começar. O primeiro clique é seguro.');
+                createBoard();
+            }
+
+            boardElement.addEventListener('click', event => {
+                if (event.button !== 0) return;
+                const button = event.target.closest('.cell');
+                if (button) openCell(Array.prototype.indexOf.call(boardElement.children, button));
+            });
+
+            boardElement.addEventListener('contextmenu', event => {
+                const button = event.target.closest('.cell');
+                if (!button) return;
+                event.preventDefault();
+                toggleFlag(Array.prototype.indexOf.call(boardElement.children, button));
+            });
+
+            flagModeElement.addEventListener('click', () => {
+                if (finished) return;
+                flagMode = !flagMode;
+                flagModeElement.setAttribute('aria-pressed', String(flagMode));
+                setMessage(flagMode ? 'Modo de bandeiras ativo. Escolha casas para marcar.' : 'Modo de abertura ativo.');
+            });
+
+            musicToggleElement.addEventListener('click', async () => {
+                if (musicElement.paused) {
+                    try {
+                        await musicElement.play();
+                    } catch (error) {
+                        musicLabelElement.textContent = 'Música indisponível';
+                    }
+                } else {
+                    musicElement.pause();
+                }
+            });
+
+            musicElement.addEventListener('play', () => {
+                musicToggleElement.setAttribute('aria-pressed', 'true');
+                musicToggleElement.title = 'Pausar trilha sonora';
+                musicIconElement.textContent = 'Ⅱ';
+                musicLabelElement.textContent = 'Pausar música';
+            });
+
+            musicElement.addEventListener('pause', () => {
+                musicToggleElement.setAttribute('aria-pressed', 'false');
+                musicToggleElement.title = 'Tocar trilha sonora';
+                musicIconElement.textContent = '▶';
+                musicLabelElement.textContent = 'Tocar música';
+            });
+
+            musicElement.addEventListener('error', () => {
+                musicToggleElement.disabled = true;
+                musicToggleElement.title = 'Arquivo de música indisponível';
+                musicIconElement.textContent = '⚠';
+                musicLabelElement.textContent = 'Música indisponível';
+            });
+
+            difficultyElement.addEventListener('change', newGame);
+            document.getElementById('reset').addEventListener('click', newGame);
+            faceElement.addEventListener('click', newGame);
+            newGame();
+        })();
+    </script>
+</body>
+</html>

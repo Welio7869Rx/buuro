@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Solitário Klondike</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #0f4c2f 0%, #1a6b45 50%, #0d3d24 100%);
+            color: #fff;
+            padding: 20px;
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 20% 50%, rgba(16, 185, 129, 0.1) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 50%, rgba(14, 165, 233, 0.05) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header {
+            text-align: center;
+            animation: slideDown 0.6s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, #10b981, #06b6d4, #10b981);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            font-weight: 800;
+            letter-spacing: -1px;
+        }
+
+        .header p {
+            font-size: 1rem;
+            opacity: 0.9;
+            color: #d0f0e0;
+            font-weight: 500;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+
+        .stat-box {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(6, 182, 212, 0.1));
+            border: 2px solid rgba(16, 185, 129, 0.4);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            animation: fadeInUp 0.6s ease-out forwards;
+            opacity: 0;
+        }
+
+        .stat-box:nth-child(1) { animation-delay: 0.1s; }
+        .stat-box:nth-child(2) { animation-delay: 0.2s; }
+        .stat-box:nth-child(3) { animation-delay: 0.3s; }
+        .stat-box:nth-child(4) { animation-delay: 0.4s; }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .stat-box:hover {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.25), rgba(6, 182, 212, 0.2));
+            border-color: rgba(16, 185, 129, 0.6);
+            transform: translateY(-3px);
+        }
+
+        .stat-box label {
+            font-size: 0.8rem;
+            opacity: 0.75;
+            display: block;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+            color: #d0f0e0;
+        }
+
+        .stat-box span {
+            font-size: 2rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #10b981, #06b6d4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .board {
+            background: linear-gradient(135deg, rgba(15, 76, 47, 0.6), rgba(26, 107, 69, 0.4));
+            border-radius: 20px;
+            padding: 28px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4), 
+                        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(16, 185, 129, 0.2);
+            backdrop-filter: blur(10px);
+            animation: slideUp 0.6s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .board-section {
+            margin-bottom: 32px;
+        }
+
+        .board-section h3 {
+            font-size: 0.85rem;
+            opacity: 0.7;
+            margin-bottom: 14px;
+            text-transform: uppercase;
+            letter-spacing: 2.5px;
+            font-weight: 700;
+            color: #d0f0e0;
+        }
+
+        .cards-row {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            justify-content: flex-start;
+        }
+
+        .card-slot {
+            width: 105px;
+            height: 145px;
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.3), rgba(16, 185, 129, 0.05));
+            border: 2.5px dashed rgba(16, 185, 129, 0.35);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: 0.8rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card-slot::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 30% 30%, rgba(16, 185, 129, 0.1), transparent);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .card-slot:hover {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(6, 182, 212, 0.1));
+            border-color: rgba(16, 185, 129, 0.7);
+            transform: translateY(-6px);
+            box-shadow: 0 8px 24px rgba(16, 185, 129, 0.15);
+        }
+
+        .card-slot:hover::before {
+            opacity: 1;
+        }
+
+        .card {
+            width: 100px;
+            height: 140px;
+            background: linear-gradient(135deg, #ffffff 0%, #f5f5f5 100%);
+            border: 2.5px solid #333;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            user-select: none;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3), 
+                        0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .card::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.3), transparent);
+            border-radius: 8px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-12px);
+            box-shadow: 0 16px 32px rgba(0, 0, 0, 0.4), 
+                        0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .card:hover::after {
+            opacity: 1;
+        }
+
+        .card:active {
+            transform: translateY(-8px) scale(0.98);
+        }
+
+        .card.red {
+            color: #dc2626;
+        }
+
+        .card.black {
+            color: #1f2937;
+        }
+
+        .card-value {
+            font-size: 1.8rem;
+            font-weight: 800;
+            line-height: 1;
+        }
+
+        .card-suit {
+            font-size: 1.4rem;
+            margin-top: 6px;
+        }
+
+        .card-back {
+            background: linear-gradient(135deg, #0e5ba8 0%, #1e40af 50%, #073397 100%);
+            border: 2.5px solid #1e3a8a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: rgba(255, 255, 255, 0.25);
+            box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.4);
+        }
+
+        .tableau {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 16px;
+            margin-top: 20px;
+        }
+
+        .tableau-column {
+            min-height: 320px;
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.2), rgba(16, 185, 129, 0.03));
+            border: 2px dashed rgba(16, 185, 129, 0.25);
+            border-radius: 12px;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .tableau-column:hover {
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.3), rgba(16, 185, 129, 0.08));
+            border-color: rgba(16, 185, 129, 0.4);
+        }
+
+        .controls {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 25px;
+            animation: fadeInUp 0.8s ease-out 0.4s backwards;
+        }
+
+        button {
+            padding: 13px 28px;
+            border-radius: 10px;
+            border: none;
+            font-size: 0.95rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: #fff;
+            box-shadow: 0 8px 16px rgba(16, 185, 129, 0.3), 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 24px rgba(16, 185, 129, 0.4), 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn-primary:active:not(:disabled) {
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(6, 182, 212, 0.15));
+            color: #d0f0e0;
+            border: 2px solid rgba(16, 185, 129, 0.5);
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.3), rgba(6, 182, 212, 0.25));
+            border-color: rgba(16, 185, 129, 0.8);
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary:active:not(:disabled) {
+            transform: translateY(0);
+        }
+
+        .message {
+            text-align: center;
+            font-size: 1.1rem;
+            font-weight: 700;
+            padding: 16px;
+            margin-top: 20px;
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.2), rgba(16, 185, 129, 0.05));
+            border-radius: 12px;
+            border: 2px solid rgba(16, 185, 129, 0.3);
+            min-height: 35px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: fadeInUp 0.4s ease-out;
+        }
+
+        .message.success {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.25), rgba(6, 182, 212, 0.15));
+            border: 2px solid #10b981;
+            color: #d0f0e0;
+            box-shadow: 0 8px 16px rgba(16, 185, 129, 0.2);
+        }
+
+        .message.error {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(234, 179, 8, 0.1));
+            border: 2px solid #ef4444;
+            color: #fca5a5;
+        }
+
+        .empty-slot {
+            color: rgba(255, 255, 255, 0.45);
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        @media (max-width: 1200px) {
+            .header h1 {
+                font-size: 2.5rem;
+            }
+
+            .tableau {
+                grid-template-columns: repeat(6, 1fr);
+                gap: 14px;
+            }
+
+            .board {
+                padding: 24px;
+            }
+        }
+
+        @media (max-width: 1024px) {
+            .tableau {
+                grid-template-columns: repeat(5, 1fr);
+            }
+            
+            .card-slot {
+                width: 90px;
+                height: 125px;
+            }
+
+            .card {
+                width: 85px;
+                height: 120px;
+            }
+
+            .card-value {
+                font-size: 1.5rem;
+            }
+
+            .card-suit {
+                font-size: 1.2rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .tableau {
+                grid-template-columns: repeat(4, 1fr);
+                gap: 12px;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .board {
+                padding: 18px;
+            }
+
+            .cards-row {
+                gap: 12px;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .tableau {
+                grid-template-columns: repeat(3, 1fr);
+            }
+
+            .card-slot {
+                width: 75px;
+                height: 105px;
+            }
+
+            .card {
+                width: 70px;
+                height: 100px;
+            }
+
+            .card-value {
+                font-size: 1.2rem;
+            }
+
+            .card-suit {
+                font-size: 0.95rem;
+                margin-top: 3px;
+            }
+
+            .header h1 {
+                font-size: 1.8rem;
+            }
+
+            .stats {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .controls {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            button {
+                width: 100%;
+                padding: 12px 20px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .tableau {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .card-slot {
+                width: 65px;
+                height: 90px;
+            }
+
+            .card {
+                width: 60px;
+                height: 85px;
+            }
+
+            .card-value {
+                font-size: 1rem;
+            }
+
+            .card-suit {
+                font-size: 0.8rem;
+            }
+
+            .header h1 {
+                font-size: 1.5rem;
+                margin-bottom: 5px;
+            }
+
+            .header p {
+                font-size: 0.85rem;
+            }
+
+            .stat-box {
+                padding: 12px;
+            }
+
+            .stat-box label {
+                font-size: 0.7rem;
+            }
+
+            .stat-box span {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🃏 Solitário Klondike</h1>
+            <p style="opacity: 0.9; margin-bottom: 15px;">Organize as cartas por naipe em ordem crescente</p>
+        </div>
+
+        <div class="stats">
+            <div class="stat-box">
+                <label>Movimentos</label>
+                <span id="moves">0</span>
+            </div>
+            <div class="stat-box">
+                <label>Tempo</label>
+                <span id="time">00:00</span>
+            </div>
+            <div class="stat-box">
+                <label>Cartas Colocadas</label>
+                <span id="placed">0/52</span>
+            </div>
+            <div class="stat-box">
+                <label>Pontuação</label>
+                <span id="score">0</span>
+            </div>
+            <div class="stat-box">
+                <label>Pontos acumulados</label>
+                <span data-score-total="solitario">0</span>
+            </div>
+        </div>
+
+        <div class="message" id="message"></div>
+
+        <div class="board">
+            <!-- Stock and Waste -->
+            <div class="board-section">
+                <h3>Baralho</h3>
+                <div class="cards-row">
+                    <div class="card-slot" id="stock-slot" style="cursor: pointer;">
+                        <div class="card card-back">🂠</div>
+                    </div>
+                    <div class="card-slot" id="waste-slot">
+                        <span class="empty-slot">Descarte</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Foundations -->
+            <div class="board-section">
+                <h3>Pilhas de Destino</h3>
+                <div class="cards-row">
+                    <div class="card-slot" id="foundation-0">
+                        <span class="empty-slot">♠</span>
+                    </div>
+                    <div class="card-slot" id="foundation-1">
+                        <span class="empty-slot">♥</span>
+                    </div>
+                    <div class="card-slot" id="foundation-2">
+                        <span class="empty-slot">♦</span>
+                    </div>
+                    <div class="card-slot" id="foundation-3">
+                        <span class="empty-slot">♣</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tableau -->
+            <div class="board-section">
+                <h3>Colunas de Jogo</h3>
+                <div class="tableau">
+                    <div class="tableau-column" id="tableau-0"></div>
+                    <div class="tableau-column" id="tableau-1"></div>
+                    <div class="tableau-column" id="tableau-2"></div>
+                    <div class="tableau-column" id="tableau-3"></div>
+                    <div class="tableau-column" id="tableau-4"></div>
+                    <div class="tableau-column" id="tableau-5"></div>
+                    <div class="tableau-column" id="tableau-6"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button class="btn-primary" id="new-game-btn">🔄 Novo Jogo</button>
+            <button class="btn-secondary" id="undo-btn">↶ Desfazer</button>
+            <button class="btn-secondary" id="hint-btn">💡 Dica</button>
+        </div>
+    </div>
+
+    <audio id="bg-audio" loop style="display: none;"></audio>
+
+    <script src="score-counter.js"></script>
+    <script>
+        // Game State
+        const SUITS = ['♠', '♥', '♦', '♣'];
+        const VALUES = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+        const SUIT_COLORS = { '♠': 'black', '♣': 'black', '♥': 'red', '♦': 'red' };
+
+        let gameState = {
+            stock: [],
+            waste: [],
+            foundations: [[], [], [], []],
+            tableau: [[], [], [], [], [], [], []],
+            moves: 0,
+            startTime: null,
+            score: 0,
+            gameWon: false,
+            history: []
+        };
+
+        // Audio
+        const bgAudio = document.getElementById('bg-audio');
+        bgAudio.src = 'c418_aria_math - Copia.mp3';
+        bgAudio.volume = 0.5;
+
+        // UI Elements
+        const stockSlot = document.getElementById('stock-slot');
+        const wasteSlot = document.getElementById('waste-slot');
+        const messageEl = document.getElementById('message');
+        const movesEl = document.getElementById('moves');
+        const timeEl = document.getElementById('time');
+        const placedEl = document.getElementById('placed');
+        const scoreEl = document.getElementById('score');
+        const newGameBtn = document.getElementById('new-game-btn');
+        const undoBtn = document.getElementById('undo-btn');
+        const hintBtn = document.getElementById('hint-btn');
+
+        // Utility functions
+        function createCard(suit, value) {
+            return { suit, value, id: `${value}${suit}` };
+        }
+
+        function getCardRank(value) {
+            if (value === 'A') return 1;
+            if (value === 'J') return 11;
+            if (value === 'Q') return 12;
+            if (value === 'K') return 13;
+            return parseInt(value);
+        }
+
+        function createDeck() {
+            const deck = [];
+            for (let suit of SUITS) {
+                for (let value of VALUES) {
+                    deck.push(createCard(suit, value));
+                }
+            }
+            // Shuffle
+            for (let i = deck.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [deck[i], deck[j]] = [deck[j], deck[i]];
+            }
+            return deck;
+        }
+
+        function initGame() {
+            gameState = {
+                stock: createDeck(),
+                waste: [],
+                foundations: [[], [], [], []],
+                tableau: [[], [], [], [], [], [], []],
+                moves: 0,
+                startTime: Date.now(),
+                score: 0,
+                gameWon: false,
+                history: []
+            };
+
+            // Deal tableau
+            for (let col = 0; col < 7; col++) {
+                for (let row = col; row < 7; row++) {
+                    gameState.tableau[row].push(gameState.stock.pop());
+                }
+                // Flip last card in each column
+                if (gameState.tableau[col].length > 0) {
+                    gameState.tableau[col][gameState.tableau[col].length - 1].flipped = false;
+                }
+            }
+
+            // Mark stock cards as flipped
+            gameState.stock.forEach(card => card.flipped = true);
+
+            // Play audio
+            try {
+                bgAudio.play().catch(() => {});
+            } catch (e) {
+                console.warn('Audio play failed:', e);
+            }
+
+            render();
+            updateStats();
+            clearMessage();
+            startTimer();
+        }
+
+        function render() {
+            // Stock
+            if (gameState.stock.length > 0) {
+                stockSlot.innerHTML = '<div class="card card-back">🂠</div>';
+            } else {
+                stockSlot.innerHTML = '<span class="empty-slot">Recarregar</span>';
+            }
+
+            // Waste
+            if (gameState.waste.length > 0) {
+                const card = gameState.waste[gameState.waste.length - 1];
+                wasteSlot.innerHTML = renderCard(card, false);
+            } else {
+                wasteSlot.innerHTML = '<span class="empty-slot">Vazio</span>';
+            }
+
+            // Foundations
+            for (let i = 0; i < 4; i++) {
+                const slot = document.getElementById(`foundation-${i}`);
+                if (gameState.foundations[i].length > 0) {
+                    const card = gameState.foundations[i][gameState.foundations[i].length - 1];
+                    slot.innerHTML = renderCard(card, false);
+                } else {
+                    slot.innerHTML = `<span class="empty-slot">${SUITS[i]}</span>`;
+                }
+            }
+
+            // Tableau
+            for (let col = 0; col < 7; col++) {
+                const column = document.getElementById(`tableau-${col}`);
+                column.innerHTML = '';
+                gameState.tableau[col].forEach((card, idx) => {
+                    const div = document.createElement('div');
+                    if (card.flipped) {
+                        div.innerHTML = '<div class="card card-back">🂠</div>';
+                    } else {
+                        div.innerHTML = renderCard(card, false);
+                    }
+                    div.style.marginTop = idx > 0 ? '-80px' : '0';
+                    column.appendChild(div);
+                });
+            }
+
+            checkWin();
+        }
+
+        function renderCard(card, isBack = false) {
+            const colorClass = SUIT_COLORS[card.suit] === 'red' ? 'red' : 'black';
+            return `<div class="card ${colorClass}"><div class="card-value">${card.value}</div><div class="card-suit">${card.suit}</div></div>`;
+        }
+
+        function updateStats() {
+            movesEl.textContent = gameState.moves;
+            const placed = gameState.foundations[0].length + gameState.foundations[1].length + 
+                          gameState.foundations[2].length + gameState.foundations[3].length;
+            placedEl.textContent = `${placed}/52`;
+            scoreEl.textContent = gameState.score;
+        }
+
+        function updateTimer() {
+            if (gameState.startTime && !gameState.gameWon) {
+                const elapsed = Math.floor((Date.now() - gameState.startTime) / 1000);
+                const mins = Math.floor(elapsed / 60);
+                const secs = elapsed % 60;
+                timeEl.textContent = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+            }
+        }
+
+        function startTimer() {
+            setInterval(updateTimer, 1000);
+        }
+
+        function checkWin() {
+            const totalPlaced = gameState.foundations.reduce((sum, f) => sum + f.length, 0);
+            if (totalPlaced === 52 && !gameState.gameWon) {
+                gameState.gameWon = true;
+                messageEl.textContent = '🎉 Parabéns! Você venceu!';
+                messageEl.className = 'message success';
+                bgAudio.pause();
+                GameScoreCounter.add('solitario', gameState.score);
+            }
+        }
+
+        function clearMessage() {
+            messageEl.textContent = '';
+            messageEl.className = 'message';
+        }
+
+        function showMessage(text, type = 'error') {
+            messageEl.textContent = text;
+            messageEl.className = `message ${type}`;
+            setTimeout(clearMessage, 3000);
+        }
+
+        // Event listeners
+        stockSlot.addEventListener('click', () => {
+            if (gameState.stock.length > 0) {
+                const card = gameState.stock.pop();
+                card.flipped = false;
+                gameState.waste.push(card);
+                gameState.moves++;
+                gameState.score += 10;
+                render();
+                updateStats();
+            } else if (gameState.waste.length > 0) {
+                // Recycle waste to stock
+                while (gameState.waste.length > 0) {
+                    const card = gameState.waste.pop();
+                    card.flipped = true;
+                    gameState.stock.push(card);
+                }
+                gameState.moves++;
+                render();
+                updateStats();
+            }
+        });
+
+        newGameBtn.addEventListener('click', initGame);
+        undoBtn.addEventListener('click', () => showMessage('Desfazer não implementado ainda', 'error'));
+        hintBtn.addEventListener('click', () => showMessage('💡 Tente colocar cartas nas pilhas de destino', 'error'));
+
+        // Initialize game on load
+        window.addEventListener('load', () => {
+            initGame();
+            // Listen for parent messages
+            window.addEventListener('message', (event) => {
+                if (event.data.type === 'start') {
+                    initGame();
+                }
+            });
+        });
+    </script>
+</body>
+</html>

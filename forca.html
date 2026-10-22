@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jogo da Velha Deluxe</title>
+    <link rel="stylesheet" href="forca.css">
+</head>
+<body>
+
+    <h1>Jogo da Velha</h1>
+
+    <!-- Seleção de Modo de Jogo -->
+    <div class="modo-container">
+        <label for="modoJogo">Modo de Jogo:</label>
+        <select id="modoJogo">
+            <option value="humano">Amigos (2 Jogadores)</option>
+            <option value="bot">Contra o Robô (I.A.)</option>
+        </select>
+    </div>
+
+    <!-- Painel de Placar -->
+    <div class="placar">
+        <div class="pontos-bloco X">X: <span id="placarX">0</span></div>
+        <div class="pontos-bloco empates">Empates: <span id="placarEmpates">0</span></div>
+        <div class="pontos-bloco O">O: <span id="placarO">0</span></div>
+        <div class="pontos-bloco total">Pontos: <span data-score-total="velha">0</span></div>
+    </div>
+
+    <div class="status" id="status">Turno do X</div>
+
+    <!-- Tabuleiro baseado no layout de teclado numérico -->
+    <div class="tabuleiro" id="tabuleiro">
+        <button class="celula" data-celula="7"></button>
+        <button class="celula" data-celula="8"></button>
+        <button class="celula" data-celula="9"></button>
+        
+        <button class="celula" data-celula="4"></button>
+        <button class="celula" data-celula="5"></button>
+        <button class="celula" data-celula="6"></button>
+        
+        <button class="celula" data-celula="1"></button>
+        <button class="celula" data-celula="2"></button>
+        <button class="celula" data-celula="3"></button>
+    </div>
+
+    <!-- Controles -->
+    <div class="botoes-container">
+        <button class="btn btn-musica" id="btnMusica" type="button" aria-pressed="false">Ativar música</button>
+        <button class="btn btn-reiniciar" id="btnReiniciar">Próxima Rodada</button>
+        <button class="btn btn-reset-placar" id="btnResetPlacar">Zerar Placar</button>
+        <button class="btn btn-tutorial" id="btnAbrirTutorial">Como Jogar?</button>
+        <a class="btn btn-menu" href="index.html?menu=1" target="_top">Voltar ao Menu</a>
+    </div>
+
+    <audio id="musicaFundo" loop preload="metadata">
+        <source src="Michael Jackson - Beat It (Eddie Van Halen) - Guitar Tab  Lesson  Cover  Tutorial - Mr. Tabs.mp3" type="audio/mpeg">
+    </audio>
+
+    <!-- Janela Flutuante do Tutorial -->
+    <div class="modal-overlay" id="tutorialModal">
+        <div class="modal">
+            <h2>Como Jogar? 🎮</h2>
+            <ul>
+                <li>O jogo é disputado entre dois jogadores: <strong>X</strong> e <strong>O</strong>.</li>
+                <li>No modo Contra o Robô, você joga como <strong>X</strong> e a máquina joga como <strong>O</strong>.</li>
+                <li>Clique em qualquer quadrado vazio do tabuleiro para fazer a sua jogada.</li>
+                <li><strong>Objetivo:</strong> Fileirar 3 símbolos iguais primeiro (na horizontal, vertical ou diagonal).</li>
+                <li>O tabuleiro simula um <strong>teclado numérico</strong> (posições 7, 8, 9 no topo e 1, 2, 3 na base).</li>
+            </ul>
+            <button class="btn btn-fechar" id="btnFecharTutorial">Entendi, vamos jogar!</button>
+        </div>
+    </div>
+
+    <script src="score-counter.js"></script>
+    <script src="forca.js"></script>
+</body>
+</html>

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tela Inicial</title>
+    <style>
+        /* Reseta as margens padrão do navegador */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* Configuração do fundo da tela */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #1e1e2f, #111119);
+            color: #ffffff;
+            overflow: hidden;
+        }
+
+        /* Container principal */
+        .container {
+            text-align: center;
+        }
+
+        /* Estilização do Nome Principal */
+        .nome {
+            font-size: 4rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            background: linear-gradient(45deg, #ff416c, #ff4b2b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+            animation: brilhar 3s ease-in-out infinite alternate;
+        }
+
+        /* Mensagem de boas-vindas secundária */
+        .boas-vindas {
+            font-size: 1.2rem;
+            color: #8888a0;
+            font-weight: 300;
+        }
+
+        /* Animação sutil de pulsação/brilho */
+        @keyframes brilhar {
+            0% {
+                filter: drop-shadow(0 0 2px rgba(255, 65, 108, 0.4));
+            }
+            100% {
+                filter: drop-shadow(0 0 15px rgba(255, 75, 43, 0.8));
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- Subclua "SEU NOME" pelo nome que você deseja exibir -->
+        <h1 class="nome">Seu Nome</h1>
+        <p class="boas-vindas">Bem-vindo à tela inicial</p>
+    </div>
+
+</body>
+</html>

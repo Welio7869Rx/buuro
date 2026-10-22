@@ -1,0 +1,60 @@
+body {
+    background:
+        radial-gradient(circle at top left, #1e3a8a, transparent 40%),
+        radial-gradient(circle at top right, #0f766e, transparent 40%),
+        #020617;
+}
+
+.wrap {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+    padding: 20px;
+}
+
+.panel {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 20px;
+    overflow: hidden;
+    transition: .3s;
+}
+
+.panel:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 40px rgba(0,0,0,.4);
+}
+
+.panel h2 {
+    padding: 15px;
+    background: rgba(255,255,255,0.05);
+    font-size: 1rem;
+}
+.topbar{
+    height:70px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:0 25px;
+    background:rgba(15,23,42,.9);
+    border-bottom:1px solid rgba(255,255,255,.08);
+}
+
+.logo{
+    font-size:1.4rem;
+    font-weight:700;
+}
+
+.status{
+    color:#94a3b8;
+}
+┌─────────────────────────┐
+│ 🎮 BUURO ARCADE         │
+├─────────────────────────┤
+│ 🔤 FORCA      ▶ Jogar   │
+│ 💰 BILHÃO     ▶ Jogar   │
+│ 🃏 SOLITÁRIO  ▶ Jogar   │
+│ 🤔 CHARADAS   ▶ Jogar   │
+├─────────────────────────┤
+│      ▶ INICIAR TUDO     │
+└─────────────────────────┘
